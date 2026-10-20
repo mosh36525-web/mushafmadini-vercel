@@ -1,0 +1,753 @@
+.devotional-page {
+  direction: rtl;
+}
+
+.devotional-heading {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 22px;
+  margin-bottom: 26px;
+}
+
+.devotional-heading h1 {
+  margin: 8px 0 7px;
+  font-family: Georgia, "Times New Roman", serif;
+  font-size: clamp(29px, 3vw, 40px);
+  font-weight: 400;
+  letter-spacing: -0.06em;
+  color: #f8f2e8;
+}
+
+.devotional-heading h1 em {
+  color: var(--gold-light);
+  font-style: normal;
+}
+
+.devotional-heading p {
+  max-width: 610px;
+  margin: 0;
+  color: var(--muted);
+  font-size: 13px;
+  line-height: 1.8;
+}
+
+.devotional-heading-actions {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  flex: 0 0 auto;
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+.devotional-heading-actions .icon-button {
+  width: 33px;
+  height: 33px;
+  font-size: 12px;
+}
+
+.devotional-toolbar {
+  display: flex;
+  align-items: center;
+  gap: 13px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 15px;
+  background: rgba(255, 255, 255, 0.025);
+  margin-bottom: 14px;
+}
+
+.devotional-search {
+  flex: 1 1 260px;
+  margin: 0;
+  min-height: 39px;
+}
+
+.dua-category-list {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.toolbar-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 0 3px;
+  color: var(--muted-2);
+  font-size: 10px;
+}
+
+.dua-category {
+  padding: 8px 10px;
+  border: 1px solid transparent;
+  border-radius: 9px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+  transition: 0.2s ease;
+}
+
+.dua-category:hover {
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.06);
+}
+
+.dua-category.active {
+  border-color: rgba(214, 168, 79, 0.28);
+  background: rgba(214, 168, 79, 0.12);
+  color: var(--gold-light);
+}
+
+.devotional-summary {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin: 0 3px 16px;
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+.devotional-summary span:last-child {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.summary-separator {
+  color: rgba(255, 255, 255, 0.25);
+}
+
+.dua-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.dua-card,
+.tasbih-settings-card {
+  border: 1px solid var(--line);
+  border-radius: 17px;
+  background: linear-gradient(
+    140deg,
+    rgba(32, 49, 54, 0.93),
+    rgba(22, 35, 40, 0.93)
+  );
+}
+
+.dua-card {
+  min-height: 255px;
+  display: flex;
+  flex-direction: column;
+  padding: 17px 18px 15px;
+}
+
+.dua-card-top {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.dua-category-tag {
+  border: 1px solid rgba(136, 170, 143, 0.27);
+  border-radius: 20px;
+  padding: 5px 9px;
+  color: #afd0b4;
+  background: rgba(136, 170, 143, 0.09);
+  font-size: 10px;
+}
+
+.dua-favorite {
+  width: 34px;
+  height: 34px;
+}
+
+.dua-text {
+  margin: 27px 0 21px;
+  color: #f5f0e6;
+  font-family: "Amiri", "Noto Naskh Arabic", Georgia, serif;
+  font-weight: 400;
+  line-height: 2;
+  letter-spacing: 0.01em;
+  transition: font-size 0.18s ease;
+}
+
+.dua-card-footer {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 12px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+  margin-top: auto;
+}
+
+.dua-reference {
+  max-width: 46%;
+  color: var(--gold-light);
+  font-size: 10px;
+  line-height: 1.5;
+  text-decoration: none;
+}
+
+.dua-reference:hover {
+  text-decoration: underline;
+}
+
+.dua-actions {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 4px;
+}
+
+.dua-action {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  padding: 6px 7px;
+  border-radius: 7px;
+  background: transparent;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.dua-action:hover {
+  color: var(--gold-light);
+  background: rgba(255, 255, 255, 0.055);
+}
+
+.dua-action-error {
+  color: #df9c90;
+  font-size: 9px;
+}
+
+.devotional-empty {
+  min-height: 260px;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 9px;
+  border: 1px dashed var(--line-strong);
+  border-radius: 17px;
+  padding: 28px;
+  color: var(--muted);
+  text-align: center;
+}
+
+.devotional-empty svg {
+  color: var(--gold);
+}
+.devotional-empty h2 {
+  margin: 5px 0 0;
+  color: #eee7dc;
+  font:
+    22px Georgia,
+    serif;
+  font-weight: 400;
+}
+.devotional-empty p {
+  margin: 0 0 6px;
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+/* Tasbih */
+.tasbih-heading {
+  margin-bottom: 23px;
+}
+
+.tasbih-daily-total {
+  min-width: 120px;
+  display: grid;
+  justify-items: center;
+  gap: 2px;
+  padding: 12px 19px;
+  border: 1px solid rgba(214, 168, 79, 0.23);
+  border-radius: 14px;
+  background: rgba(214, 168, 79, 0.07);
+}
+
+.tasbih-daily-total span,
+.tasbih-daily-total small {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.tasbih-daily-total strong {
+  color: var(--gold-light);
+  font:
+    29px Georgia,
+    serif;
+  font-weight: 400;
+  line-height: 1.05;
+}
+
+.tasbih-layout {
+  display: grid;
+  grid-template-columns: minmax(0, 1.25fr) minmax(300px, 0.75fr);
+  gap: 18px;
+  align-items: start;
+}
+
+.tasbih-main-card {
+  min-height: 614px;
+  position: relative;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  background:
+    radial-gradient(
+      circle at 8% 16%,
+      rgba(214, 168, 79, 0.12),
+      transparent 28%
+    ),
+    linear-gradient(135deg, rgba(38, 61, 62, 0.94), rgba(21, 34, 40, 0.96));
+}
+
+.tasbih-main-content {
+  min-height: 614px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 38px clamp(20px, 5vw, 68px);
+  text-align: center;
+  position: relative;
+  z-index: 1;
+}
+
+.tasbih-main-content h2 {
+  margin: 8px 0 4px;
+  color: #f8f2e8;
+  font:
+    clamp(25px, 3vw, 35px) Georgia,
+    serif;
+  font-weight: 400;
+}
+
+.tasbih-keyboard-hint {
+  margin: 0;
+  color: var(--muted-2);
+  font-size: 11px;
+}
+
+.tasbih-counter {
+  width: min(292px, 78vw);
+  aspect-ratio: 1;
+  display: grid;
+  place-content: center;
+  justify-items: center;
+  gap: 5px;
+  margin: 27px 0 20px;
+  border: 1px solid rgba(214, 168, 79, 0.58);
+  border-radius: 50%;
+  color: #f8efd9;
+  background: radial-gradient(
+    circle at 35% 30%,
+    rgba(245, 206, 131, 0.38),
+    rgba(123, 79, 39, 0.49) 58%,
+    rgba(44, 48, 38, 0.82) 100%
+  );
+  box-shadow:
+    0 0 0 12px rgba(214, 168, 79, 0.065),
+    0 0 44px rgba(214, 168, 79, 0.12),
+    inset 0 0 0 12px rgba(255, 244, 217, 0.035);
+  cursor: pointer;
+  user-select: none;
+  transition:
+    transform 0.15s ease,
+    box-shadow 0.15s ease;
+}
+
+.tasbih-counter:hover {
+  transform: translateY(-2px);
+  box-shadow:
+    0 0 0 14px rgba(214, 168, 79, 0.08),
+    0 0 50px rgba(214, 168, 79, 0.18),
+    inset 0 0 0 12px rgba(255, 244, 217, 0.04);
+}
+.tasbih-counter:active {
+  transform: scale(0.98);
+}
+.tasbih-counter:focus-visible {
+  outline: 3px solid var(--gold-light);
+  outline-offset: 6px;
+}
+.tasbih-counter-label {
+  color: rgba(255, 241, 211, 0.78);
+  font-size: 11px;
+}
+.tasbih-counter strong {
+  color: #fff4d9;
+  font:
+    clamp(53px, 8vw, 82px) Georgia,
+    serif;
+  font-weight: 400;
+  letter-spacing: -0.07em;
+  line-height: 1;
+  direction: ltr;
+}
+.tasbih-counter-tap {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: rgba(255, 245, 218, 0.78);
+  font-size: 10px;
+}
+
+.tasbih-progress-row {
+  width: min(420px, 100%);
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: 10px;
+  color: var(--muted);
+  font-size: 10px;
+}
+
+.tasbih-progress {
+  height: 5px;
+  overflow: hidden;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.tasbih-progress i {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--gold);
+  transition: width 0.22s ease;
+}
+
+.tasbih-counter-actions {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  margin-top: 23px;
+}
+.tasbih-counter-actions .outline-button:disabled,
+.danger-button:disabled {
+  cursor: not-allowed;
+  opacity: 0.4;
+}
+.danger-button {
+  color: #cbb8a9;
+}
+.danger-button:hover {
+  color: #e7b4a7;
+}
+
+.tasbih-inline-confirm {
+  width: min(510px, 100%);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  margin-top: 22px;
+  padding: 13px 14px;
+  border: 1px solid rgba(214, 168, 79, 0.3);
+  border-radius: 12px;
+  background: rgba(18, 30, 34, 0.86);
+  text-align: right;
+}
+
+.tasbih-inline-confirm > div:first-child {
+  display: grid;
+  gap: 3px;
+}
+.tasbih-inline-confirm strong {
+  color: #eee8df;
+  font-size: 11px;
+}
+.tasbih-inline-confirm span {
+  color: var(--muted-2);
+  font-size: 9px;
+}
+.tasbih-confirm-actions {
+  display: flex;
+  flex: 0 0 auto;
+  gap: 6px;
+}
+.tasbih-confirm-actions .outline-button,
+.tasbih-confirm-actions .primary-button {
+  padding: 8px 9px;
+  font-size: 10px;
+  white-space: nowrap;
+}
+
+.tasbih-settings-card {
+  padding: 21px;
+}
+.tasbih-settings-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding-bottom: 17px;
+  border-bottom: 1px solid var(--line);
+}
+.tasbih-settings-heading h2 {
+  margin: 4px 0 0;
+  color: #f0ebe1;
+  font:
+    21px Georgia,
+    serif;
+  font-weight: 400;
+}
+
+.tasbih-preset-list {
+  display: grid;
+  gap: 5px;
+  padding: 16px 0 8px;
+}
+.tasbih-dhikr-choice,
+.tasbih-custom-toggle {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 11px;
+  border: 1px solid transparent;
+  border-radius: 10px;
+  color: #dad8cf;
+  background: transparent;
+  text-align: right;
+  font-size: 12px;
+  transition: 0.2s ease;
+}
+
+.tasbih-dhikr-choice:hover,
+.tasbih-custom-toggle:hover {
+  background: rgba(255, 255, 255, 0.05);
+}
+.tasbih-dhikr-choice.active,
+.tasbih-custom-toggle.active {
+  border-color: rgba(214, 168, 79, 0.27);
+  color: var(--gold-light);
+  background: rgba(214, 168, 79, 0.1);
+}
+.tasbih-dhikr-choice svg {
+  color: var(--gold);
+}
+.tasbih-custom-toggle {
+  margin-top: 4px;
+  color: var(--muted);
+  border-top: 1px solid var(--line);
+  border-radius: 0 0 10px 10px;
+}
+.tasbih-custom-toggle svg {
+  transform: rotate(0);
+  transition: transform 0.2s ease;
+}
+.tasbih-custom-toggle.active svg {
+  transform: rotate(-90deg);
+}
+
+.tasbih-custom-entry {
+  display: grid;
+  gap: 7px;
+  padding: 12px 0 3px;
+}
+.tasbih-custom-entry label,
+.tasbih-label {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.tasbih-custom-entry input,
+.tasbih-target-custom input {
+  width: 100%;
+  border: 1px solid var(--line-strong);
+  border-radius: 9px;
+  padding: 10px;
+  outline: 0;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.035);
+  font-size: 11px;
+}
+.tasbih-custom-entry input::placeholder {
+  color: var(--muted-2);
+}
+.tasbih-custom-entry .wide-button {
+  padding: 9px;
+}
+
+.tasbih-target-section {
+  margin-top: 19px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+}
+.tasbih-target-options {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 8px;
+}
+.tasbih-target-options button {
+  padding: 9px 6px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  color: var(--muted);
+  background: rgba(255, 255, 255, 0.025);
+  font-size: 11px;
+}
+.tasbih-target-options button:hover {
+  color: var(--text);
+  border-color: var(--line-strong);
+}
+.tasbih-target-options button.active {
+  color: var(--gold-light);
+  border-color: rgba(214, 168, 79, 0.4);
+  background: rgba(214, 168, 79, 0.11);
+}
+.tasbih-target-custom {
+  display: flex;
+  gap: 7px;
+  margin-top: 8px;
+}
+.tasbih-target-custom input {
+  min-width: 0;
+  direction: ltr;
+  text-align: right;
+}
+.tasbih-target-custom .outline-button {
+  flex: 0 0 auto;
+  padding: 8px 10px;
+  font-size: 10px;
+}
+.tasbih-disclaimer {
+  margin: 10px 0 0;
+  color: var(--muted-2);
+  font-size: 9px;
+  line-height: 1.7;
+}
+
+.tasbih-vibration {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-top: 17px;
+  padding-top: 15px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+  font-size: 11px;
+}
+.tasbih-vibration input {
+  width: 15px;
+  height: 15px;
+  accent-color: var(--gold);
+}
+.tasbih-vibration svg {
+  color: var(--gold);
+}
+.tasbih-vibration small {
+  width: 100%;
+  margin-right: 24px;
+  color: var(--muted-2);
+  font-size: 9px;
+}
+.tasbih-vibration.unsupported {
+  opacity: 0.63;
+}
+
+@media (max-width: 950px) {
+  .dua-grid {
+    grid-template-columns: 1fr;
+  }
+  .tasbih-layout {
+    grid-template-columns: 1fr;
+  }
+  .tasbih-settings-card {
+    max-width: none;
+  }
+}
+
+@media (max-width: 800px) {
+  .devotional-heading {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+  .devotional-heading-actions {
+    align-self: flex-start;
+  }
+  .tasbih-daily-total {
+    align-self: flex-start;
+    grid-template-columns: auto auto;
+    column-gap: 9px;
+    justify-items: start;
+    min-width: 0;
+  }
+  .tasbih-daily-total small {
+    grid-column: 1 / -1;
+  }
+  .devotional-toolbar {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .dua-category-list {
+    gap: 4px;
+  }
+  .tasbih-main-card,
+  .tasbih-main-content {
+    min-height: 555px;
+  }
+}
+
+@media (max-width: 500px) {
+  .devotional-toolbar {
+    padding: 9px;
+  }
+  .toolbar-label {
+    width: 100%;
+    padding: 2px 3px;
+  }
+  .dua-category {
+    padding: 7px 8px;
+  }
+  .dua-card {
+    min-height: 230px;
+    padding: 15px 14px 13px;
+  }
+  .dua-text {
+    margin: 20px 0 18px;
+    line-height: 1.9;
+  }
+  .dua-card-footer {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+  .dua-reference {
+    max-width: 100%;
+  }
+  .dua-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+  .tasbih-main-card,
+  .tasbih-main-content {
+    min-height: 530px;
+  }
+  .tasbih-main-content {
+    padding: 30px 18px;
+  }
+  .tasbih-counter {
+    width: min(260px, 75vw);
+    margin: 23px 0 17px;
+  }
+  .tasbih-inline-confirm {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .tasbih-confirm-actions {
+    justify-content: flex-start;
+  }
+  .tasbih-settings-card {
+    padding: 17px;
+  }
+}

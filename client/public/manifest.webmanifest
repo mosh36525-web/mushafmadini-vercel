@@ -1,0 +1,12 @@
+{
+  "name": "المصحف المديني",
+  "short_name": "المصحف المديني",
+  "description": "وردك، صلاتك، وطمأنينتك في مكان واحد.",
+  "start_url": "/",
+  "display": "standalone",
+  "dir": "rtl",
+  "lang": "ar",
+  "background_color": "#101820",
+  "theme_color": "#101820",
+  "icons": []
+}

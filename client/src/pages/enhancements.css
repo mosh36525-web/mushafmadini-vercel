@@ -1,0 +1,153 @@
+.verse-jump {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 12px;
+  margin: 16px 0;
+  color: var(--muted);
+  font-size: 13px;
+}
+.verse-jump input {
+  width: 80px;
+  color: var(--text);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  padding: 7px;
+  background: var(--ink-soft);
+}
+.source-note {
+  color: var(--muted);
+  text-align: center;
+  font-size: 11px;
+  line-height: 1.9;
+}
+.source-note a {
+  color: var(--gold);
+}
+.page-turn:disabled {
+  opacity: 0.35;
+  cursor: not-allowed;
+}
+.test-actions {
+  flex-wrap: wrap;
+}
+.history-dialog {
+  max-height: 75vh;
+  overflow: auto;
+}
+.history-item {
+  display: flex;
+  width: 100%;
+  text-align: right;
+  flex-direction: column;
+  gap: 6px;
+  padding: 14px;
+  border-bottom: 1px solid var(--line);
+  background: transparent;
+}
+.history-item span {
+  color: var(--muted);
+  font-size: 12px;
+}
+:root:not(.dark) {
+  --ink: #f6f0e5;
+  --ink-soft: #eee6d8;
+  --ink-card: #fffaf0;
+  --ink-lift: #e7ddca;
+  --text: #25372f;
+  --muted: #58645a;
+  --muted-2: #69756b;
+  --line: rgba(74, 64, 40, 0.17);
+  --line-strong: rgba(74, 64, 40, 0.3);
+  --gold: #8b631f;
+  --gold-light: #775018;
+  --shadow: 0 20px 60px rgba(45, 37, 21, 0.08);
+}
+:root:not(.dark) .sidebar,
+:root:not(.dark) .mobile-tabs {
+  background: rgba(246, 240, 229, 0.97);
+}
+:root:not(.dark) .topbar,
+:root:not(.dark) .player-bar {
+  background: var(--ink-soft);
+}
+:root:not(.dark) .daily-card,
+:root:not(.dark) .next-prayer-card,
+:root:not(.dark) .review-mini-card,
+:root:not(.dark) .quote-card,
+:root:not(.dark) .recitation-card,
+:root:not(.dark) .mushaf-reader,
+:root:not(.dark) .surah-panel,
+:root:not(.dark) .review-task,
+:root:not(.dark) .test-card,
+:root:not(.dark) .test-modal-card,
+:root:not(.dark) .prayer-hero,
+:root:not(.dark) .qibla-card,
+:root:not(.dark) .azkar-card,
+:root:not(.dark) .prayer-time-card,
+:root:not(.dark) .quick-actions button {
+  background: var(--ink-card);
+}
+:root:not(.dark) .brand-copy strong,
+:root:not(.dark) h1,
+:root:not(.dark) h2,
+:root:not(.dark) h3,
+:root:not(.dark) .daily-copy h2,
+:root:not(.dark) .recitation-info h3,
+:root:not(.dark) .quick-actions strong,
+:root:not(.dark) .review-mini-list strong,
+:root:not(.dark) .player-details strong,
+:root:not(.dark) .player-reciter strong,
+:root:not(.dark) .test-select strong,
+:root:not(.dark) .quote-card p,
+:root:not(.dark) .user-chip,
+:root:not(.dark) .city-select select {
+  color: var(--text);
+}
+:root:not(.dark) .reciter-menu {
+  background: var(--ink-card);
+}
+:root:not(.dark) .ayah-line {
+  color: var(--text);
+}
+@media (max-width: 800px) {
+  .mobile-tabs {
+    display: flex;
+    overflow-x: auto;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+  }
+  .mobile-tabs button {
+    min-width: 72px;
+    flex: 1 0 72px;
+  }
+  .player-reciter {
+    display: flex;
+    font-size: 10px;
+    max-width: 118px;
+  }
+  .player-reciter > span {
+    display: none;
+  }
+  .player-options {
+    gap: 3px;
+  }
+  .reciter-menu {
+    position: absolute;
+    bottom: 55px;
+    left: 0;
+    min-width: 190px;
+  }
+  .surah-list {
+    max-height: 245px;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation: none !important;
+    transition: none !important;
+    scroll-behavior: auto !important;
+  }
+}
