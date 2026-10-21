@@ -15,6 +15,20 @@
       "when": 1792480285782,
       "tag": "0001_user_data",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1792519463159,
+      "tag": "0002_heavy_quasimodo",
+      "breakpoints": true
+    },
+    {
+      "idx": 3,
+      "version": "5",
+      "when": 1792523627595,
+      "tag": "0003_eager_ser_duncan",
+      "breakpoints": true
     }
   ]
 }

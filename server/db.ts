@@ -1,92 +1,110 @@
-import { and, eq } from "drizzle-orm";
+import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { InsertUser, userData, users } from "../drizzle/schema";
+import { authTokens, userData, users } from "../drizzle/schema";
 import { userDataMapSchema, type UserDataMap } from "../shared/userData";
-import { ENV } from './_core/env';
+import { createPool } from "mysql2/promise";
+import { mysqlConfig } from "./mysqlConfig";
 
-let _db: ReturnType<typeof drizzle> | null = null;
+const createDatabase = () => drizzle(createPool(mysqlConfig()));
+let _db: ReturnType<typeof createDatabase> | null = null;
 
 // Lazily create the drizzle instance so local tooling can run without a DB.
 export async function getDb() {
   if (!_db && process.env.DATABASE_URL) {
-    try {
-      _db = drizzle(process.env.DATABASE_URL);
-    } catch (error) {
-      console.warn("[Database] Failed to connect:", error);
-      _db = null;
-    }
+    _db = createDatabase();
   }
   return _db;
 }
 
-export async function upsertUser(user: InsertUser): Promise<void> {
-  if (!user.openId) {
-    throw new Error("User openId is required for upsert");
-  }
-
+export async function getUserById(id: number) {
   const db = await getDb();
-  if (!db) {
-    throw new Error("Database is not available");
-  }
-
-  try {
-    const values: InsertUser = {
-      openId: user.openId,
-    };
-    const updateSet: Record<string, unknown> = {};
-
-    const textFields = ["name", "email", "loginMethod"] as const;
-    type TextField = (typeof textFields)[number];
-
-    const assignNullable = (field: TextField) => {
-      const value = user[field];
-      if (value === undefined) return;
-      const normalized = value ?? null;
-      values[field] = normalized;
-      updateSet[field] = normalized;
-    };
-
-    textFields.forEach(assignNullable);
-
-    if (user.lastSignedIn !== undefined) {
-      values.lastSignedIn = user.lastSignedIn;
-      updateSet.lastSignedIn = user.lastSignedIn;
-    }
-    if (user.role !== undefined) {
-      values.role = user.role;
-      updateSet.role = user.role;
-    } else if (user.openId === ENV.ownerOpenId) {
-      values.role = 'admin';
-      updateSet.role = 'admin';
-    }
-
-    if (!values.lastSignedIn) {
-      values.lastSignedIn = new Date();
-    }
-
-    if (Object.keys(updateSet).length === 0) {
-      updateSet.lastSignedIn = new Date();
-    }
-
-    await db.insert(users).values(values).onDuplicateKeyUpdate({
-      set: updateSet,
-    });
-  } catch (error) {
-    console.error("[Database] Failed to upsert user:", error);
-    throw error;
-  }
+  if (!db) return undefined;
+  const rows = await db.select().from(users).where(eq(users.id, id)).limit(1);
+  return rows[0];
 }
 
-export async function getUserByOpenId(openId: string) {
+export async function getUserByEmail(email: string) {
   const db = await getDb();
-  if (!db) {
-    console.warn("[Database] Cannot get user: database not available");
-    return undefined;
-  }
+  if (!db) throw new Error("Database is not available");
+  const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  return rows[0];
+}
 
-  const result = await db.select().from(users).where(eq(users.openId, openId)).limit(1);
+export async function createEmailUser(email: string, name: string, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(users).values({
+    openId: null,
+    email,
+    name,
+    passwordHash,
+    emailVerified: false,
+    loginMethod: "email",
+    lastSignedIn: new Date(),
+  });
+  return getUserByEmail(email);
+}
 
-  return result.length > 0 ? result[0] : undefined;
+export async function markUserSignedIn(id: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, id));
+}
+
+export async function invalidatePasswordResetTokens(userId: number) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(authTokens).set({ used: true }).where(and(
+    eq(authTokens.userId, userId),
+    eq(authTokens.type, "RESET_PASSWORD"),
+    eq(authTokens.used, false),
+  ));
+}
+
+export async function deleteExpiredAuthTokens(now = new Date()) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.delete(authTokens).where(lt(authTokens.expiresAt, now));
+}
+
+export async function createPasswordResetToken(userId: number, tokenHash: string, expiresAt: Date) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.insert(authTokens).values({ userId, tokenHash, type: "RESET_PASSWORD", expiresAt });
+}
+
+export async function getActivePasswordResetToken(tokenHash: string, now = new Date()) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const rows = await db.select().from(authTokens).where(and(
+    eq(authTokens.tokenHash, tokenHash),
+    eq(authTokens.type, "RESET_PASSWORD"),
+    eq(authTokens.used, false),
+    gt(authTokens.expiresAt, now),
+  )).limit(1);
+  return rows[0];
+}
+
+export async function consumePasswordResetToken(id: number, now = new Date()): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  const result = await db.update(authTokens).set({ used: true }).where(and(
+    eq(authTokens.id, id),
+    eq(authTokens.type, "RESET_PASSWORD"),
+    eq(authTokens.used, false),
+    gt(authTokens.expiresAt, now),
+  ));
+  return Number((result as unknown as [{ affectedRows?: number }])[0]?.affectedRows ?? 0) === 1;
+}
+
+export async function updateUserPassword(userId: number, passwordHash: string) {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  await db.update(users).set({
+    passwordHash,
+    emailVerified: true,
+    sessionVersion: sql`${users.sessionVersion} + 1`,
+  }).where(eq(users.id, userId));
 }
 
 export type StoredUserData = {

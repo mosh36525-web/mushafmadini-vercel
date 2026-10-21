@@ -21,7 +21,7 @@ function contextFor(userId: number | null): TrpcContext {
       openId: `test-${userId}`,
       name: "اختبار",
       email: null,
-      loginMethod: "manus",
+      loginMethod: "email",
       role: "user",
       createdAt: now,
       updatedAt: now,

@@ -4,17 +4,28 @@ import { getPlatformHealth } from "./_core/platformHealth";
 describe("public platform health", () => {
   it("reports missing environment names without exposing values", () => {
     const result = getPlatformHealth({
-      MANUS_PROJECT_ID: "project-public-id",
-      MANUS_OAUTH_PORTAL_URL: "https://portal.example",
-      MANUS_OAUTH_API_URL: "https://api.example",
-      MANUS_JWT_SECRET: "never-expose-this",
+      AUTH_JWT_SECRET: "a-long-test-secret-that-is-never-used-in-production",
       DATABASE_URL: "mysql://never-expose-this",
+      MYSQL_SSL_CA: "-----BEGIN CERTIFICATE-----never-expose-this",
     });
-    expect(result).toEqual({ status: "ready", missing: [] });
+    expect(result).toEqual({ status: "ready", missing: [], emailConfigured: false });
 
-    const incomplete = getPlatformHealth({ MANUS_PROJECT_ID: "project-public-id" });
+    const mailReady = getPlatformHealth({
+      AUTH_JWT_SECRET: "a-long-test-secret-that-is-never-used-in-production",
+      DATABASE_URL: "mysql://never-expose-this",
+      MYSQL_SSL_CA: "-----BEGIN CERTIFICATE-----never-expose-this",
+      RESEND_API_KEY: "re_never-expose-this",
+      AUTH_EMAIL_FROM: "noreply@example.test",
+      PUBLIC_APP_URL: "https://example.test",
+      NODE_ENV: "production",
+    });
+    expect(mailReady.emailConfigured).toBe(true);
+
+    const incomplete = getPlatformHealth({ AUTH_JWT_SECRET: "short" });
     expect(incomplete.status).toBe("configuration_incomplete");
     expect(incomplete.missing).toContain("DATABASE_URL");
+    expect(incomplete.missing).toContain("MYSQL_SSL_CA");
+    expect(incomplete.missing).toContain("AUTH_JWT_SECRET");
     expect(JSON.stringify(incomplete)).not.toContain("never-expose-this");
   });
 });

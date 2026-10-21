@@ -1,8 +1,8 @@
-import { datetime, int, json, mysqlEnum, mysqlTable, text, timestamp, varchar } from "drizzle-orm/mysql-core";
+import { boolean, datetime, int, json, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
 import type { UserDataMap } from "../shared/userData";
 
 /**
- * Core user table backing auth flow.
+ * User accounts for independent email/password authentication.
  * Extend this file with additional tables as your product grows.
  * Columns use camelCase to match both database fields and generated types.
  */
@@ -12,10 +12,17 @@ export const users = mysqlTable("users", {
    * Use this for relations between tables.
    */
   id: int("id").autoincrement().primaryKey(),
-  /** Manus OAuth identifier (openId) returned from the OAuth callback. Unique per user. */
-  openId: varchar("openId", { length: 64 }).notNull().unique(),
+  /** Legacy nullable identifier retained for compatibility; local email accounts do not use it. */
+  openId: varchar("openId", { length: 64 }).unique(),
   name: text("name"),
-  email: varchar("email", { length: 320 }),
+  /** Unique email address used for standalone authentication. */
+  email: varchar("email", { length: 320 }).unique(),
+  /** Scrypt password hash for standalone email/password authentication. */
+  passwordHash: varchar("passwordHash", { length: 255 }),
+  /** Incremented when a password is reset to revoke all previously issued sessions. */
+  sessionVersion: int("sessionVersion").default(0).notNull(),
+  /** Status indicating whether user verified their email address. */
+  emailVerified: boolean("emailVerified").default(false).notNull(),
   loginMethod: varchar("loginMethod", { length: 64 }),
   role: mysqlEnum("role", ["user", "admin"]).default("user").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
@@ -27,7 +34,25 @@ export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
 /**
- * One bounded preferences/progress document per authenticated Manus user.
+ * Reserved single-use verification/reset tokens; delivery remains disabled until an email provider is configured.
+ */
+export const authTokens = mysqlTable("auth_tokens", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  tokenHash: varchar("tokenHash", { length: 255 }).notNull(),
+  type: mysqlEnum("type", ["VERIFICATION", "RESET_PASSWORD"]).notNull(),
+  expiresAt: timestamp("expiresAt").notNull(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+}, table => ({
+  tokenHashUnique: uniqueIndex("auth_tokens_tokenHash_unique").on(table.tokenHash),
+}));
+
+export type AuthToken = typeof authTokens.$inferSelect;
+export type InsertAuthToken = typeof authTokens.$inferInsert;
+
+/**
+ * One bounded preferences/progress document per authenticated user.
  * The numeric foreign key is the sole ownership boundary; client requests never
  * carry a user id for this table.
  */

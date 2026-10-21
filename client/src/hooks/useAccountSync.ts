@@ -1,5 +1,4 @@
-import { startLogin } from "@/const";
-import { useAuth } from "@/_core/hooks/useAuth";
+import { useAuth, type EmailCredentials, type RegisterCredentials } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import {
   ACCOUNT_SYNC_STORAGE_KEYS,
@@ -106,7 +105,7 @@ export function announceMadiniDataChange(keys?: readonly string[]): void {
 }
 
 /**
- * Synchronizes only whitelisted local product settings with the current Manus user.
+ * Synchronizes only whitelisted local product settings with the current email account.
  * The persistent visible-owner marker separates guest, account A, and account B data;
  * neither the marker nor any unapproved browser key is sent to the server.
  */
@@ -262,7 +261,7 @@ export function useAccountSync(options: UseAccountSyncOptions = {}) {
         updatedAtRef.current = result.updatedAt;
         saveAccountSnapshot(operationUserId, saved, result.updatedAt);
         setSyncStatus("ready");
-        setSyncMessage("تمت المزامنة مع حساب Manus.");
+        setSyncMessage("تمت مزامنة بيانات الحساب.");
       }
     } catch {
       if (!isCurrentOperation()) return;
@@ -465,7 +464,7 @@ export function useAccountSync(options: UseAccountSyncOptions = {}) {
     setSyncStatus("ready");
     setSyncMessage(
       source === "account"
-        ? "تمت استعادة بيانات حسابك من Manus."
+        ? "تمت استعادة بيانات حسابك."
         : source === "snapshot"
           ? "استُعيدت نسخة محلية سابقة لهذا الحساب."
           : "حسابك جاهز للمزامنة."
@@ -571,16 +570,17 @@ export function useAccountSync(options: UseAccountSyncOptions = {}) {
     return result;
   }, [acceptHydrationPayload]);
 
-  const login = useCallback(() => {
-    try {
-      startLogin();
-      return true;
-    } catch {
-      setSyncStatus("error");
-      setSyncMessage("تعذر بدء دخول Manus. افحص إعدادات البيئة والمتصفح.");
-      return false;
-    }
-  }, []);
+  const login = useCallback(async (credentials: EmailCredentials) => {
+    const user = await auth.login(credentials);
+    setSyncStatus("hydrating");
+    return user;
+  }, [auth.login]);
+
+  const register = useCallback(async (credentials: RegisterCredentials) => {
+    const user = await auth.register(credentials);
+    setSyncStatus("hydrating");
+    return user;
+  }, [auth.register]);
 
   return {
     user: auth.user,
@@ -591,6 +591,7 @@ export function useAccountSync(options: UseAccountSyncOptions = {}) {
     syncMessage,
     guestDataAvailable,
     login,
+    register,
     logout: auth.logout,
     importGuestData,
     refresh,
