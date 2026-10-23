@@ -81,7 +81,7 @@ git push origin BRANCH
 لا ترسل أي قيمة سرية في المحادثة. إذا لم تغيّر **Build Command** في إعدادات Vercel يدويًا، سيقرأ Vercel الأمر من `vercel.json`. إذا كان هناك Build Command مخصص محفوظ في إعدادات اللوحة، اجعله مطابقًا لهذا الأمر حتى تُطبّق المهاجرات قبل البناء:
 
 ```bash
-if [ "$VERCEL_ENV" = "production" ]; then pnpm db:check && pnpm db:migrate; fi && pnpm build:static
+pnpm check && if [ "$VERCEL_ENV" = "production" ]; then pnpm db:check && pnpm db:migrate; fi && pnpm build:static
 ```
 
 وتأكد أن **Install Command** هو:

@@ -113,7 +113,8 @@ export const appRouter = router({
       else if (typeof cookieOptions.sameSite === "string") {
         expiredCookie.push(`SameSite=${cookieOptions.sameSite[0]?.toUpperCase()}${cookieOptions.sameSite.slice(1)}`);
       }
-      ctx.res.setHeader("Set-Cookie", expiredCookie.join("; "));
+      const response = ctx.res as unknown as { setHeader(name: string, value: string): void };
+      response.setHeader("Set-Cookie", expiredCookie.join("; "));
       return { success: true } as const;
     }),
   }),

@@ -2,7 +2,7 @@
   "$schema": "https://openapi.vercel.sh/vercel.json",
   "framework": "vite",
   "installCommand": "pnpm install --frozen-lockfile",
-  "buildCommand": "if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:check && pnpm db:migrate; fi && pnpm build:static",
+  "buildCommand": "pnpm check && if [ \"$VERCEL_ENV\" = \"production\" ]; then pnpm db:check && pnpm db:migrate; fi && pnpm build:static",
   "outputDirectory": "dist/public",
   "rewrites": [
     { "source": "/api/(.*)", "destination": "/api/index" },

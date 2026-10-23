@@ -1,5 +1,3 @@
-import type { NextFunction } from "express";
-
 type ResponseLike = {
   setHeader(name: string, value: string): unknown;
   status(code: number): { json(body: unknown): unknown };
@@ -18,7 +16,7 @@ function requestHeader(request: unknown, name: string): string | undefined {
 }
 
 /** Mutations must originate from this site; Origin is set by browsers, not user JS. */
-export const sameOriginMutations = (req: unknown, res: unknown, next: NextFunction): void => {
+export const sameOriginMutations = (req: unknown, res: unknown, next: () => void): void => {
   const response = res as ResponseLike;
   response.setHeader("Cache-Control", "private, no-store");
   const method = requestProperty(req, "method");
