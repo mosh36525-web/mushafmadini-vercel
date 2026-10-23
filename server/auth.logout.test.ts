@@ -3,16 +3,11 @@ import { appRouter } from "./routers";
 import { COOKIE_NAME } from "../shared/const";
 import type { TrpcContext } from "./_core/context";
 
-type CookieCall = {
-  name: string;
-  options: Record<string, unknown>;
-};
-
+type HeaderCall = { name: string; value: string };
 type AuthenticatedUser = NonNullable<TrpcContext["user"]>;
 
-function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] } {
-  const clearedCookies: CookieCall[] = [];
-
+function createAuthContext(): { ctx: TrpcContext; headers: HeaderCall[] } {
+  const headers: HeaderCall[] = [];
   const user: AuthenticatedUser = {
     id: 1,
     openId: null,
@@ -32,31 +27,30 @@ function createAuthContext(): { ctx: TrpcContext; clearedCookies: CookieCall[] }
       headers: {},
     } as TrpcContext["req"],
     res: {
-      clearCookie: (name: string, options: Record<string, unknown>) => {
-        clearedCookies.push({ name, options });
+      setHeader: (name: string, value: string) => {
+        headers.push({ name, value });
       },
-    } as TrpcContext["res"],
+    } as unknown as TrpcContext["res"],
   };
 
-  return { ctx, clearedCookies };
+  return { ctx, headers };
 }
 
 describe("auth.logout", () => {
-  it("clears the session cookie and reports success", async () => {
-    const { ctx, clearedCookies } = createAuthContext();
+  it("expires the session cookie and reports success", async () => {
+    const { ctx, headers } = createAuthContext();
     const caller = appRouter.createCaller(ctx);
 
     const result = await caller.auth.logout();
 
     expect(result).toEqual({ success: true });
-    expect(clearedCookies).toHaveLength(1);
-    expect(clearedCookies[0]?.name).toBe(COOKIE_NAME);
-    expect(clearedCookies[0]?.options).toMatchObject({
-      maxAge: 0,
-      secure: false,
-      sameSite: "lax",
-      httpOnly: true,
-      path: "/",
-    });
+    expect(headers).toHaveLength(1);
+    expect(headers[0]?.name).toBe("Set-Cookie");
+    expect(headers[0]?.value).toContain(`${COOKIE_NAME}=`);
+    expect(headers[0]?.value).toContain("Path=/");
+    expect(headers[0]?.value).toContain("Max-Age=0");
+    expect(headers[0]?.value).toContain("Expires=Thu, 01 Jan 1970 00:00:00 GMT");
+    expect(headers[0]?.value).toContain("HttpOnly");
+    expect(headers[0]?.value).toContain("SameSite=Lax");
   });
 });

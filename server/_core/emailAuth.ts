@@ -1,7 +1,6 @@
 import { randomBytes, scrypt as nodeScrypt, timingSafeEqual } from "node:crypto";
 import { parse as parseCookieHeader } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
-import type { Request } from "express";
 import { COOKIE_NAME } from "@shared/const";
 import type { User } from "../../drizzle/schema";
 import { getUserById } from "../db";
@@ -76,8 +75,12 @@ async function verifySessionToken(token: string): Promise<{ userId: number; vers
   }
 }
 
-export async function authenticateEmailSession(req: Request): Promise<User | null> {
-  const cookies = parseCookieHeader(req.headers.cookie ?? "");
+export async function authenticateEmailSession(req: unknown): Promise<User | null> {
+  if (typeof req !== "object" || req === null) return null;
+  const headers = (req as { headers?: unknown }).headers;
+  if (typeof headers !== "object" || headers === null) return null;
+  const cookieHeader = (headers as { cookie?: unknown }).cookie;
+  const cookies = parseCookieHeader(typeof cookieHeader === "string" ? cookieHeader : "");
   const token = cookies[COOKIE_NAME];
   if (!token) return null;
   const identity = await verifySessionToken(token);

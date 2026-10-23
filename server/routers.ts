@@ -147,7 +147,20 @@ export const appRouter = router({
       return { success: true } as const;
     }),
     logout: publicProcedure.mutation(({ ctx }) => {
-      ctx.res.clearCookie(COOKIE_NAME, { ...getSessionCookieOptions(ctx.req), maxAge: 0 });
+      const cookieOptions = getSessionCookieOptions(ctx.req);
+      const expiredCookie = [
+        `${COOKIE_NAME}=`,
+        `Path=${cookieOptions.path ?? "/"}`,
+        "Max-Age=0",
+        "Expires=Thu, 01 Jan 1970 00:00:00 GMT",
+      ];
+      if (cookieOptions.httpOnly) expiredCookie.push("HttpOnly");
+      if (cookieOptions.secure) expiredCookie.push("Secure");
+      if (cookieOptions.sameSite === true) expiredCookie.push("SameSite=Strict");
+      else if (typeof cookieOptions.sameSite === "string") {
+        expiredCookie.push(`SameSite=${cookieOptions.sameSite[0]?.toUpperCase()}${cookieOptions.sameSite.slice(1)}`);
+      }
+      ctx.res.setHeader("Set-Cookie", expiredCookie.join("; "));
       return { success: true } as const;
     }),
   }),
