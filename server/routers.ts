@@ -12,9 +12,12 @@ import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 
 const authInput = z.object({
   email: z.string().trim().max(320).email().transform(value => value.toLowerCase()),
+  password: z.string().min(1).max(128),
+});
+const registerInput = authInput.extend({
+  name: z.string().trim().min(2).max(80),
   password: z.string().min(10).max(128),
 });
-const registerInput = authInput.extend({ name: z.string().trim().min(2).max(80) });
 const resetRequestInput = z.object({
   email: z.string().trim().max(320).email().transform(value => value.toLowerCase()),
 });

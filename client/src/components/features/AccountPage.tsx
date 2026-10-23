@@ -89,7 +89,7 @@ export function AccountPage({ notify, sync }: AccountPageProps) {
       const success = mode === "register"
         ? await account.register({ name, email, password })
         : await account.login({ email, password });
-      if (!success) throw new Error(mode === "register" ? "تعذر إنشاء الحساب. ربما البريد مسجل بالفعل." : "البريد الإلكتروني أو كلمة المرور غير صحيحة.");
+      if (!success) throw new Error(mode === "register" ? "تعذر إنشاء الحساب. ربما البريد مسجل بالفعل." : "البريد الإلكتروني أو كلمة المرور غير صحيحة. استخدم بيانات حساب مسجل، أو اختر «حساب جديد» إذا لم تنشئ حسابًا بعد.");
       setPassword("");
       notify(mode === "register" ? "تم إنشاء الحساب وتسجيل الدخول." : "تم تسجيل الدخول.");
     } catch (error) {
@@ -129,10 +129,11 @@ export function AccountPage({ notify, sync }: AccountPageProps) {
                 <button type="button" className={mode === "login" || mode === "forgot" ? "active" : ""} onClick={() => { setMode("login"); setAuthError(""); setAuthNotice(""); }}><LogIn size={15} /> دخول</button>
                 <button type="button" className={mode === "register" ? "active" : ""} onClick={() => { setMode("register"); setAuthError(""); setAuthNotice(""); }}><UserPlus size={15} /> حساب جديد</button>
               </div>
+              {mode === "login" && <p className="account-login-hint">الدخول يتطلب حسابًا مسجلًا مسبقًا. إن لم تنشئ حسابًا بعد، اختر «حساب جديد» أولًا.</p>}
               <form className="account-auth-form" onSubmit={event => void submitAuth(event)}>
                 {mode === "register" && <label className="account-field">الاسم<input className="account-input" autoComplete="name" required minLength={2} maxLength={80} value={name} onChange={event => setName(event.target.value)} /></label>}
                 <label className="account-field">البريد الإلكتروني<input className="account-input" type="email" dir="ltr" autoComplete="email" required maxLength={320} value={email} onChange={event => setEmail(event.target.value)} /></label>
-                {mode !== "forgot" && <label className="account-field">كلمة المرور<input className="account-input" type="password" dir="ltr" autoComplete={mode === "register" ? "new-password" : "current-password"} required minLength={10} maxLength={128} value={password} onChange={event => setPassword(event.target.value)} />{mode === "register" && <small>10 أحرف على الأقل.</small>}</label>}
+                {mode !== "forgot" && <label className="account-field">كلمة المرور<input className="account-input" type="password" dir="ltr" autoComplete={mode === "register" ? "new-password" : "current-password"} required minLength={mode === "register" ? 10 : undefined} maxLength={128} value={password} onChange={event => setPassword(event.target.value)} />{mode === "register" && <small>10 أحرف على الأقل.</small>}</label>}
                 {mode === "login" && <button type="button" className="account-text-action" onClick={() => { setMode("forgot"); setAuthError(""); setAuthNotice(""); }}>نسيت كلمة المرور؟</button>}
                 {mode === "forgot" && !health?.emailConfigured && <p className="account-copy" role="status">إرسال رسائل الاستعادة غير مفعّل بعد. يلزم إعداد خادم البريد في استضافة الموقع.</p>}
                 {authError && <p className="account-auth-error" role="alert">{authError}</p>}

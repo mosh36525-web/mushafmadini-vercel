@@ -104,6 +104,19 @@ describe("email authentication router", () => {
     expect(cookieCalls).toHaveLength(1);
   });
 
+  it("accepts a previously registered short password during login", async () => {
+    const { hashPassword } = await import("./_core/emailAuth");
+    const password = "Short7!";
+    const hash = await hashPassword(password);
+    database.getUserByEmail.mockResolvedValue(sampleUser(hash));
+    database.markUserSignedIn.mockResolvedValue(undefined);
+    const { api } = caller();
+
+    const result = await api.auth.login({ email: "test@example.com", password });
+    expect(result.email).toBe("test@example.com");
+    expect(database.markUserSignedIn).toHaveBeenCalledWith(73);
+  });
+
   it("returns the same reset response for an unknown address without exposing account existence", async () => {
     database.getUserByEmail.mockResolvedValue(undefined);
     const result = await caller("203.0.113.8").api.auth.requestPasswordReset({ email: "unknown@example.com" });

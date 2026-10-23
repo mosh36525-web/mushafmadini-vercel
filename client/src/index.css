@@ -223,3 +223,17 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
     display: none;
   }
 }
+
+
+.surah-count {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted-2);
+  font-size: 9px;
+}
+@media (max-width: 800px) {
+  .app-shell .surah-list {
+    max-height: none;
+    overflow: visible;
+  }
+}

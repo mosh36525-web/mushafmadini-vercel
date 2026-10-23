@@ -1050,6 +1050,9 @@ export default function Home() {
                   <div>
                     <span className="eyebrow">السور</span>
                     <strong>فهرس القرآن</strong>
+                    <small className="surah-count">
+                      {surahs.length.toLocaleString("ar")} سورة
+                    </small>
                   </div>
                   <button
                     type="button"
