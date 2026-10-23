@@ -318,6 +318,7 @@ export default function Home() {
   const completion = Math.round((activeVerse / selectedSurah.ayahs) * 100);
   const [toast, setToast] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
+  const quranSearchRef = useRef<HTMLInputElement>(null);
   const notifiedPrayers = useRef(new Set<number>());
 
   const filteredSurahs = useMemo(() => {
@@ -560,6 +561,11 @@ export default function Home() {
     );
   }
 
+  function openQuranSearch() {
+    selectView("mushaf");
+    window.requestAnimationFrame(() => quranSearchRef.current?.focus());
+  }
+
   return (
     <div className="app-shell">
       <audio
@@ -581,6 +587,7 @@ export default function Home() {
                 key={item.id}
                 className={`nav-item ${view === item.id ? "active" : ""}`}
                 onClick={() => selectView(item.id)}
+                aria-current={view === item.id ? "page" : undefined}
               >
                 <Icon size={19} strokeWidth={view === item.id ? 2.2 : 1.7} />
                 <span>{item.label}</span>
@@ -632,19 +639,33 @@ export default function Home() {
             </strong>
           </div>
           <div className="topbar-actions">
+            {view !== "home" && (
+              <button
+                className="topbar-home-button"
+                onClick={() => selectView("home")}
+                aria-label="العودة إلى الصفحة الرئيسية"
+                title="العودة إلى الصفحة الرئيسية"
+              >
+                <HomeIcon size={17} />
+                <span>الرئيسية</span>
+              </button>
+            )}
             <button
               className="icon-button muted"
-              onClick={() => selectView("mushaf")}
-              aria-label="بحث"
+              onClick={openQuranSearch}
+              aria-label="البحث عن سورة"
+              title="البحث عن سورة"
             >
               <Search size={18} />
             </button>
             <button
               className="icon-button muted"
               onClick={() => setDarkMode(current => !current)}
-              aria-label="تبديل الوضع"
+              aria-label={darkMode ? "تفعيل الوضع النهاري" : "تفعيل الوضع الليلي"}
+              aria-pressed={darkMode}
+              title={darkMode ? "تفعيل الوضع النهاري" : "تفعيل الوضع الليلي"}
             >
-              <Sun size={18} />
+              {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
             <button className="user-chip" onClick={() => selectView("account")}>
               <div className="avatar small">م</div>
@@ -662,6 +683,7 @@ export default function Home() {
                 key={item.id}
                 className={view === item.id ? "active" : ""}
                 onClick={() => selectView(item.id)}
+                aria-current={view === item.id ? "page" : undefined}
               >
                 <Icon size={17} />
                 <span>{item.shortLabel}</span>
@@ -978,16 +1000,19 @@ export default function Home() {
                 >
                   تكبير النص
                 </button>
-                <button
-                  className="icon-button subtle"
-                  onClick={() => setFontSize(size => Math.max(23, size - 2))}
-                >
-                  أصغر
-                </button>
-                <button
-                  className={`icon-button subtle ${bookmarked ? "selected" : ""}`}
-                  onClick={saveBookmark}
-                >
+                  <button
+                    className="icon-button subtle"
+                    onClick={() => setFontSize(size => Math.max(23, size - 2))}
+                    aria-label="تصغير نص المصحف"
+                  >
+                    أصغر
+                  </button>
+                  <button
+                    className={`icon-button subtle ${bookmarked ? "selected" : ""}`}
+                    onClick={saveBookmark}
+                    aria-label={bookmarked ? "إزالة العلامة المرجعية" : "حفظ موضع القراءة"}
+                    aria-pressed={bookmarked}
+                  >
                   {bookmarked ? (
                     <BookmarkCheck size={18} />
                   ) : (
@@ -1025,9 +1050,11 @@ export default function Home() {
                 <label className="search-field">
                   <Search size={16} />
                   <input
+                    ref={quranSearchRef}
                     value={search}
                     onChange={event => setSearch(event.target.value)}
                     placeholder="ابحث عن سورة"
+                    aria-label="البحث عن سورة أو رقمها"
                   />
                 </label>
                 <div className="surah-list">
