@@ -310,6 +310,22 @@ export default function Home() {
     dateStyle: "full",
     calendar: "islamic-umalqura",
   }).format(new Date());
+  const featuredVerse = useMemo(() => {
+    const choices = quran.flatMap(surah =>
+      surah.ayahs
+        .filter(ayah => ayah.text.length <= 220)
+        .map(ayah => ({
+          surahNumber: surah.number,
+          surahName: surahs.find(item => item.number === surah.number)?.name ?? surah.name,
+          verseNumber: ayah.numberInSurah,
+          text: ayah.text,
+        }))
+    );
+    if (!choices.length) return null;
+    const dayNumber = Math.floor(Date.parse(`${today}T00:00:00Z`) / 86_400_000);
+    const index = ((dayNumber % choices.length) + choices.length) % choices.length;
+    return choices[index] ?? null;
+  }, [quran, today]);
   const prayer = usePrayerTimes();
   const prayerTimes = prayer.times;
   const nextPrayer = prayer.nextPrayer;
@@ -733,6 +749,34 @@ export default function Home() {
               </div>
             </section>
 
+            <section className="featured-verse-card" aria-labelledby="featured-verse-title">
+              <div className="featured-verse-topline">
+                <span className="featured-verse-label" id="featured-verse-title"><Sparkles size={16} /> آية اليوم</span>
+                <span className="featured-verse-date">{dailyDate}</span>
+              </div>
+              {featuredVerse ? (
+                <>
+                  <blockquote className="featured-verse-text">{featuredVerse.text}</blockquote>
+                  <div className="featured-verse-footer">
+                    <cite className="featured-verse-reference">سورة {featuredVerse.surahName} <span>·</span> الآية {featuredVerse.verseNumber.toLocaleString("ar")}</cite>
+                    <button
+                      className="featured-verse-action"
+                      onClick={() => {
+                        setPosition({ surahNumber: featuredVerse.surahNumber, verse: featuredVerse.verseNumber });
+                        selectView("mushaf");
+                      }}
+                    >
+                      اقرأها في المصحف <ArrowLeft size={16} />
+                    </button>
+                  </div>
+                </>
+              ) : (
+                <p className="featured-verse-loading" role="status">
+                  {quranError ? "تعذر تحميل آية اليوم؛ تحقق من اتصالك بالإنترنت." : "جارٍ تحضير آية اليوم…"}
+                </p>
+              )}
+            </section>
+
             <section className="hero-grid">
               <div className="daily-card panel-glow">
                 <div className="daily-pattern" />
@@ -997,11 +1041,6 @@ export default function Home() {
                   <button className="wide-button" onClick={startReview}>
                     متابعة المراجعة <ArrowLeft size={15} />
                   </button>
-                </div>
-                <div className="quote-card">
-                  <Sparkles size={19} />
-                  <p>«وَرَتِّلِ الْقُرْآنَ تَرْتِيلًا»</p>
-                  <span>المزمل · ٤</span>
                 </div>
               </aside>
             </section>
