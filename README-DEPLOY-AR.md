@@ -14,7 +14,7 @@
 1. نزّل أحدث `mushafmadini-username-auth-fix.zip` وفكّه إلى مجلد مؤقت.
 2. انسخ المجلدات والملفات الموجودة داخل الأرشيف إلى جذر المشروع `E:\mushafmadini-vercel`، واختر **دمج المجلدات واستبدال الملفات المتكررة**.
 3. هذه حزمة ملفات معدّلة فقط؛ لا تحتوي المشروع كاملًا أو `.git` أو `.env` أو `node_modules` أو شهادة Aiven. اترك `.git` وملف `aiven-ca.pem` الموجودين في مشروعك دون تغيير.
-4. احذف الملفات القديمة إن كانت موجودة في نسختك: `server/_core/emailAuth.ts` و`server/_core/emailDelivery.ts` و`server/emailDelivery.test.ts`. لا تحذف أعمدة البريد أو جدول `auth_tokens` من Aiven؛ تبقى كسجلات قديمة دون أن تُستخدم في الدخول الجديد.
+4. شغّل `powershell -ExecutionPolicy Bypass -File .\scripts\remove-legacy-platform-files.ps1` لإزالة ملفات Manus/OAuth القديمة غير المستخدمة، التي تشير إلى إعدادات Forge أو OAuth لم تعد في النظام. لا يحذف السكربت إعدادات البيئة أو شهادة Aiven أو جداول/سجلات Aiven.
 
 تأكد من استبدال الملفات تحت `client` و`server` و`drizzle`، وإضافة ترحيل `drizzle\0005_disable_legacy_recovery_codes.sql`. يوجد الترحيل السابق `0004` عندك من الحزمة الأولى.
 
@@ -52,7 +52,7 @@ git clone https://github.com/OWNER/REPOSITORY.git E:\mushafmadini-git
 
 ```powershell
 git status --short
-git add -A
+git add -A -- client api server shared drizzle scripts README-DEPLOY-AR.md TODO.md vercel.json
 git status --short
 ```
 
