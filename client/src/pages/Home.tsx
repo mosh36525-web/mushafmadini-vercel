@@ -21,6 +21,7 @@ import {
   ListMusic,
   LocateFixed,
   LockKeyhole,
+  LogIn,
   MapPin,
   Menu,
   Moon,
@@ -678,11 +679,22 @@ export default function Home() {
             >
               {darkMode ? <Sun size={18} /> : <Moon size={18} />}
             </button>
-            <button className="user-chip" onClick={() => selectView("account")}>
-              <div className="avatar small">م</div>
-              <span>{userName}</span>
-              <ChevronDown size={15} />
-            </button>
+            {!account.data && view !== "account" ? (
+              <button
+                className="topbar-login-button"
+                onClick={() => selectView("account")}
+                aria-label="تسجيل الدخول أو إنشاء حساب"
+              >
+                <LogIn size={16} />
+                <span>تسجيل الدخول</span>
+              </button>
+            ) : account.data ? (
+              <button className="user-chip" onClick={() => selectView("account")}>
+                <div className="avatar small">م</div>
+                <span>{userName}</span>
+                <ChevronDown size={15} />
+              </button>
+            ) : null}
           </div>
         </header>
 
