@@ -6,6 +6,8 @@ export const ACCOUNT_SYNC_STORAGE_KEYS = [
   "madini-font-size",
   "madini-reciter",
   "madini-review-completed",
+  "madini-review-plan",
+  "madini-review-plan-completed",
   "madini-activity",
   "madini-history",
   "madini-reminders",

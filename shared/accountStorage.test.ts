@@ -128,4 +128,26 @@ describe("visible-owner account isolation", () => {
     });
     expect(readLocalData(storage)).toEqual({ "madini-dark": "true" });
   });
+
+  it("syncs only the personal review plan and its completion state", () => {
+    const storage = new MemoryStorage();
+    writeLocalData(storage, {
+      "madini-review-plan": JSON.stringify([
+        { id: "task-1", surahNumber: 2, fromVerse: 1, toVerse: 10 },
+      ]),
+      "madini-review-plan-completed": JSON.stringify({
+        "2026-10-23": ["task-1"],
+      }),
+      "review-private-token": "must-not-sync",
+    });
+
+    expect(readLocalData(storage)).toEqual({
+      "madini-review-plan": JSON.stringify([
+        { id: "task-1", surahNumber: 2, fromVerse: 1, toVerse: 10 },
+      ]),
+      "madini-review-plan-completed": JSON.stringify({
+        "2026-10-23": ["task-1"],
+      }),
+    });
+  });
 });

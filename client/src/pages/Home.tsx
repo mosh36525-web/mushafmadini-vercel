@@ -56,6 +56,14 @@ import AccountPage from "@/components/features/AccountPage";
 import { trpc } from "@/lib/trpc";
 import { normalizeArabic } from "@/lib/arabic";
 import { useAccountSync } from "@/hooks/useAccountSync";
+import {
+  DEFAULT_REVIEW_PLAN,
+  markReviewTaskComplete,
+  normalizeReviewCompletions,
+  normalizeReviewPlan,
+  removeReviewTaskCompletions,
+  type ReviewPlanItem,
+} from "@shared/reviewPlan";
 import "./enhancements.css";
 
 type View =
@@ -101,12 +109,6 @@ const reciters: Reciter[] = [
   },
 ];
 
-const reviewItems = [
-  { id: 1, title: "سورة الفاتحة", meta: "الآيات 1 – 7", state: "مكتمل" },
-  { id: 2, title: "سورة البقرة", meta: "الآيات 1 – 5", state: "قيد المراجعة" },
-  { id: 3, title: "سورة الكهف", meta: "الآيات 1 – 10", state: "لم تبدأ" },
-];
-
 const navItems: {
   id: View;
   label: string;
@@ -126,6 +128,13 @@ const navItems: {
   { id: "tasbih", label: "السبحة", shortLabel: "السبحة", icon: Circle },
   { id: "account", label: "حسابي", shortLabel: "حسابي", icon: UserRound },
 ];
+
+function localDateKey(date = new Date()) {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
 
 function formatTime(seconds: number) {
   if (!Number.isFinite(seconds)) return "00:00";
@@ -274,25 +283,62 @@ export default function Home() {
     verse: number;
   } | null>("madini-bookmark-position", null);
   const [fontSize, setFontSize] = usePersistentState("madini-font-size", 29);
+  const today = localDateKey();
   const [isTestMode, setIsTestMode] = useState(false);
   const [revealed, setRevealed] = useState(false);
+  const [activeReviewTaskId, setActiveReviewTaskId] = useState<string | null>(null);
+  const [reviewSessionEnd, setReviewSessionEnd] = useState<number | null>(null);
+  const [reviewEditorOpen, setReviewEditorOpen] = useState(false);
+  const [draftReviewSurahNumber, setDraftReviewSurahNumber] = useState(1);
+  const [draftReviewFromVerse, setDraftReviewFromVerse] = useState("1");
+  const [draftReviewToVerse, setDraftReviewToVerse] = useState("7");
+  const [reviewPlanStored, setReviewPlanStored] = usePersistentState<
+    ReviewPlanItem[]
+  >("madini-review-plan", DEFAULT_REVIEW_PLAN);
+  const reviewPlan = normalizeReviewPlan(reviewPlanStored, surahs);
+  const [reviewCompletionsStored, setReviewCompletionsStored] =
+    usePersistentState<Record<string, string[]>>(
+      "madini-review-plan-completed",
+      {}
+    );
+  const reviewCompletions = normalizeReviewCompletions(reviewCompletionsStored);
+  const completedTaskIdsToday = new Set(
+    (reviewCompletions[today] ?? []).filter(id =>
+      reviewPlan.some(item => item.id === id)
+    )
+  );
   const [completedReviewIds, setCompletedReviewIds] = usePersistentState<
     number[]
   >("madini-review-completed", []);
-  const completedReview = completedReviewIds.includes(selectedSurah.number);
-  const setCompletedReview = (_done: boolean) =>
+  const setCompletedReview = () =>
     setCompletedReviewIds(ids => [...new Set([...ids, selectedSurah.number])]);
-  const reviewTasks = reviewItems.map(item => ({
-    ...item,
-    state: completedReviewIds.includes(item.id === 3 ? 18 : item.id)
-      ? "مكتمل"
-      : "لم تبدأ",
-  }));
-  const reviewPercent = Math.round(
-    (reviewTasks.filter(item => item.state === "مكتمل").length /
-      reviewTasks.length) *
-      100
-  );
+  const reviewTasks = reviewPlan.map((item, index) => {
+    const surah = surahs.find(candidate => candidate.number === item.surahNumber)!;
+    return {
+      ...item,
+      order: index + 1,
+      title: `سورة ${surah.name}`,
+      meta: `الآيات ${item.fromVerse} – ${item.toVerse}`,
+      state: completedTaskIdsToday.has(item.id)
+        ? "مكتمل"
+        : activeReviewTaskId === item.id
+          ? "قيد المراجعة"
+          : "لم تبدأ",
+    };
+  });
+  const reviewPercent = reviewTasks.length
+    ? Math.round(
+        (reviewTasks.filter(item => item.state === "مكتمل").length /
+          reviewTasks.length) *
+          100
+      )
+    : 0;
+  const upcomingReviewTask =
+    reviewTasks.find(item => item.state !== "مكتمل") ?? reviewTasks[0] ?? null;
+  const draftReviewSurah =
+    surahs.find(item => item.number === draftReviewSurahNumber) ?? surahs[0];
+  const activeReviewTask =
+    reviewPlan.find(item => item.id === activeReviewTaskId) ?? null;
   const [activity, setActivity] = usePersistentState<string[]>(
     "madini-activity",
     []
@@ -305,7 +351,6 @@ export default function Home() {
     "madini-reminders",
     false
   );
-  const today = new Date().toLocaleDateString("en-CA");
   const dailyDate = new Intl.DateTimeFormat("ar", {
     dateStyle: "full",
     calendar: "islamic-umalqura",
@@ -574,10 +619,107 @@ export default function Home() {
     setToast(next ? "تم حفظ موضع القراءة" : "أزيلت العلامة المرجعية");
   }
 
-  function startReview() {
-    selectView("review");
+  function startReviewTask(task: ReviewPlanItem) {
+    const surah = surahs.find(item => item.number === task.surahNumber);
+    if (!surah) return;
+    pauseAudio();
+    setPosition({ surahNumber: surah.number, verse: task.fromVerse });
+    setActiveReviewTaskId(task.id);
+    setReviewSessionEnd(task.toVerse);
     setIsTestMode(true);
     setRevealed(false);
+  }
+
+  function startNextReviewTask() {
+    const nextTask =
+      reviewTasks.find(item => item.state !== "مكتمل") ?? reviewTasks[0];
+    if (!nextTask) {
+      setReviewEditorOpen(true);
+      setToast("أضف مقطعًا إلى خطتك أولًا");
+      return;
+    }
+    startReviewTask(nextTask);
+  }
+
+  function startReview() {
+    selectView("review");
+    startNextReviewTask();
+  }
+
+  function addReviewTask() {
+    const fromVerse = Number(draftReviewFromVerse);
+    const toVerse = Number(draftReviewToVerse);
+    if (
+      !Number.isInteger(fromVerse) ||
+      !Number.isInteger(toVerse) ||
+      fromVerse < 1 ||
+      toVerse < fromVerse ||
+      toVerse > draftReviewSurah.ayahs
+    ) {
+      setToast(`اختر نطاقًا صحيحًا من 1 إلى ${draftReviewSurah.ayahs}`);
+      return;
+    }
+    if (reviewPlan.length >= 30) {
+      setToast("وصلت إلى الحد الأقصى وهو 30 مقطعًا في الخطة");
+      return;
+    }
+    if (
+      reviewPlan.some(
+        item =>
+          item.surahNumber === draftReviewSurah.number &&
+          item.fromVerse === fromVerse &&
+          item.toVerse === toVerse
+      )
+    ) {
+      setToast("هذا المقطع موجود بالفعل في خطتك");
+      return;
+    }
+
+    const newTask: ReviewPlanItem = {
+      id: `review-${Date.now()}-${Math.random().toString(36).slice(2, 8)}`,
+      surahNumber: draftReviewSurah.number,
+      fromVerse,
+      toVerse,
+    };
+    setReviewPlanStored(current =>
+      normalizeReviewPlan([...normalizeReviewPlan(current, surahs), newTask], surahs)
+    );
+    setReviewEditorOpen(false);
+    setToast("أُضيف المقطع إلى خطة مراجعتك");
+  }
+
+  function removeReviewTask(taskId: string) {
+    setReviewPlanStored(current =>
+      normalizeReviewPlan(current, surahs).filter(item => item.id !== taskId)
+    );
+    setReviewCompletionsStored(current =>
+      removeReviewTaskCompletions(current, taskId)
+    );
+    if (activeReviewTaskId === taskId) {
+      setActiveReviewTaskId(null);
+      setReviewSessionEnd(null);
+      setIsTestMode(false);
+    }
+  }
+
+  function closeReviewSession() {
+    setIsTestMode(false);
+    setRevealed(false);
+    setActiveReviewTaskId(null);
+    setReviewSessionEnd(null);
+  }
+
+  function finishReviewSession() {
+    setCompletedReview();
+    if (activeReviewTaskId) {
+      setReviewCompletionsStored(current =>
+        markReviewTaskComplete(current, today, activeReviewTaskId)
+      );
+      setToast("أحسنت، أُنجز مقطع المراجعة اليوم");
+    } else {
+      setToast("أحسنت، تم تسجيل المراجعة");
+    }
+    closeReviewSession();
   }
 
   function selectView(nextView: View) {
@@ -1027,7 +1169,7 @@ export default function Home() {
                           {item.state === "مكتمل" ? (
                             <Check size={11} />
                           ) : (
-                            item.id
+                            item.order
                           )}
                         </span>
                         <div>
@@ -1269,7 +1411,7 @@ export default function Home() {
               </div>
               <div className="review-date">
                 <CalendarCheck2 size={17} />
-                <span>خطة اليوم · ٣ مهام</span>
+                <span>خطة اليوم · {reviewPlan.length.toLocaleString("ar-SA")} مقاطع</span>
               </div>
             </section>
             <section className="review-overview">
@@ -1304,10 +1446,7 @@ export default function Home() {
                   </p>
                   <button
                     className="primary-button"
-                    onClick={() => {
-                      setIsTestMode(true);
-                      setRevealed(false);
-                    }}
+                    onClick={startNextReviewTask}
                   >
                     ابدأ التسميع <Play size={16} fill="currentColor" />
                   </button>
@@ -1319,7 +1458,7 @@ export default function Home() {
                   <span>أيام متتالية</span>
                 </div>
                 <div>
-                  <strong>٣</strong>
+                  <strong>{reviewPlan.length.toLocaleString("ar-SA")}</strong>
                   <span>مهام اليوم</span>
                 </div>
                 <div>
@@ -1333,47 +1472,138 @@ export default function Home() {
                 <SectionHeading
                   eyebrow="مراجعة اليوم"
                   title="خطتك المختصرة"
-                  description="تقدم صغير كل يوم، حفظ راسخ كل أسبوع."
-                />
-                <div className="review-tasks">
-                  {reviewTasks.map(item => (
-                    <div
-                      key={item.id}
-                      className={`review-task ${item.state === "قيد المراجعة" ? "current" : ""}`}
+                  description="اختر المقاطع التي تريد تثبيتها، وتابع إنجازك اليومي."
+                  action={
+                    <button
+                      className="outline-button review-plan-edit-button"
+                      onClick={() => setReviewEditorOpen(open => !open)}
+                      aria-expanded={reviewEditorOpen}
                     >
-                      <div className="task-status">
-                        {item.state === "مكتمل" ? (
-                          <CheckCircle2 size={20} />
-                        ) : item.state === "قيد المراجعة" ? (
-                          <Timer size={20} />
-                        ) : (
-                          <Circle size={20} />
-                        )}
-                      </div>
-                      <div className="task-copy">
-                        <strong>{item.title}</strong>
-                        <span>{item.meta}</span>
-                      </div>
-                      <span className="task-state">{item.state}</span>
-                      <button
-                        className="icon-button subtle"
-                        onClick={() => {
-                          setSelectedSurah(
-                            surahs[(item.id === 3 ? 18 : item.id) - 1]
-                          );
-                          setIsTestMode(true);
-                          setRevealed(false);
-                        }}
-                      >
-                        {item.state === "مكتمل" ? (
-                          <RotateCcw size={16} />
-                        ) : (
-                          <ArrowLeft size={16} />
-                        )}
-                      </button>
+                      <Settings2 size={15} />
+                      {reviewEditorOpen ? "إغلاق التخصيص" : "تخصيص الخطة"}
+                    </button>
+                  }
+                />
+                {reviewEditorOpen && (
+                  <form
+                    className="review-plan-editor"
+                    onSubmit={event => {
+                      event.preventDefault();
+                      addReviewTask();
+                    }}
+                  >
+                    <div className="review-plan-editor-fields">
+                      <label>
+                        السورة
+                        <select
+                          value={draftReviewSurahNumber}
+                          onChange={event => {
+                            const nextNumber = Number(event.target.value);
+                            const nextSurah =
+                              surahs.find(item => item.number === nextNumber) ??
+                              surahs[0];
+                            setDraftReviewSurahNumber(nextSurah.number);
+                            setDraftReviewFromVerse("1");
+                            setDraftReviewToVerse(
+                              String(Math.min(7, nextSurah.ayahs))
+                            );
+                          }}
+                        >
+                          {surahs.map(item => (
+                            <option key={item.number} value={item.number}>
+                              {item.number}. سورة {item.name}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        من الآية
+                        <input
+                          type="number"
+                          min="1"
+                          max={draftReviewSurah.ayahs}
+                          inputMode="numeric"
+                          value={draftReviewFromVerse}
+                          onChange={event =>
+                            setDraftReviewFromVerse(event.target.value)
+                          }
+                        />
+                      </label>
+                      <label>
+                        إلى الآية
+                        <input
+                          type="number"
+                          min="1"
+                          max={draftReviewSurah.ayahs}
+                          inputMode="numeric"
+                          value={draftReviewToVerse}
+                          onChange={event =>
+                            setDraftReviewToVerse(event.target.value)
+                          }
+                        />
+                      </label>
                     </div>
-                  ))}
-                </div>
+                    <div className="review-plan-editor-actions">
+                      <button className="primary-button" type="submit">
+                        إضافة المقطع <Check size={15} />
+                      </button>
+                      <span>
+                        خطة يومية محفوظة محليًا، وتتم مزامنتها مع حسابك عند
+                        تسجيل الدخول.
+                      </span>
+                    </div>
+                  </form>
+                )}
+                {reviewTasks.length === 0 ? (
+                  <div className="review-plan-empty">
+                    خطتك فارغة الآن. أضف سورة ونطاق الآيات الذي تريد مراجعته.
+                  </div>
+                ) : (
+                  <div className="review-tasks">
+                    {reviewTasks.map(item => (
+                      <div
+                        key={item.id}
+                        className={`review-task ${item.state === "قيد المراجعة" ? "current" : ""}`}
+                      >
+                        <div className="task-status">
+                          {item.state === "مكتمل" ? (
+                            <CheckCircle2 size={20} />
+                          ) : item.state === "قيد المراجعة" ? (
+                            <Timer size={20} />
+                          ) : (
+                            <Circle size={20} />
+                          )}
+                        </div>
+                        <div className="task-copy">
+                          <strong>{item.title}</strong>
+                          <span>{item.meta}</span>
+                        </div>
+                        <span className="task-state">{item.state}</span>
+                        <div className="review-task-actions">
+                          <button
+                            className="icon-button subtle"
+                            aria-label={`${item.state === "مكتمل" ? "إعادة مراجعة" : "ابدأ مراجعة"} ${item.title} ${item.meta}`}
+                            onClick={() => startReviewTask(item)}
+                          >
+                            {item.state === "مكتمل" ? (
+                              <RotateCcw size={16} />
+                            ) : (
+                              <ArrowLeft size={16} />
+                            )}
+                          </button>
+                          <button
+                            className="icon-button subtle review-task-remove"
+                            aria-label={`حذف ${item.title} ${item.meta} من الخطة`}
+                            title="حذف من الخطة"
+                            onClick={() => removeReviewTask(item.id)}
+                          >
+                            <X size={15} />
+                          </button>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
               </section>
               <aside className="test-card">
                 <div className="test-card-glow" />
@@ -1386,20 +1616,19 @@ export default function Home() {
                 <h3>اختبر حفظك دون تردد</h3>
                 <p>أخفِ الآيات، اقرأ من حفظك، ثم اكشف النص للمراجعة.</p>
                 <div className="test-select">
-                  <span>النطاق</span>
+                  <span>المهمة التالية</span>
                   <strong>
-                    {selectedSurah.name} · {selectedSurah.ayahs} آية
+                    {upcomingReviewTask
+                      ? `${upcomingReviewTask.title} · ${upcomingReviewTask.meta}`
+                      : "لا توجد مهمة مضافة"}
                   </strong>
                   <ChevronDown size={15} />
                 </div>
                 <button
                   className="wide-button"
-                  onClick={() => {
-                    setIsTestMode(true);
-                    setRevealed(false);
-                  }}
+                  onClick={startNextReviewTask}
                 >
-                  ابدأ الاختبار <ArrowLeft size={15} />
+                  ابدأ المقطع التالي <ArrowLeft size={15} />
                 </button>
               </aside>
             </div>
@@ -1409,17 +1638,24 @@ export default function Home() {
                   <button
                     className="close-button"
                     aria-label="إغلاق التسميع"
-                    onClick={() => setIsTestMode(false)}
+                    onClick={closeReviewSession}
                   >
                     <X size={18} />
                   </button>
-                  <span className="eyebrow">تسميع {selectedSurah.name}</span>
+                  <span className="eyebrow">
+                    تسميع {selectedSurah.name}
+                    {activeReviewTask
+                      ? ` · الآيات ${activeReviewTask.fromVerse}–${activeReviewTask.toVerse}`
+                      : ""}
+                  </span>
                   <p className="source-note">
                     مراجعة ذاتية؛ لا يسجّل التطبيق صوتك ولا يقيّم صحة التسميع
                     آليًا.
                   </p>
                   <h2>
-                    الآية {activeVerse} من {selectedSurah.ayahs}
+                    الآية {activeVerse} من
+                    {" "}
+                    {reviewSessionEnd ?? selectedSurah.ayahs}
                   </h2>
                   <div className={`hidden-verse ${revealed ? "revealed" : ""}`}>
                     {revealed ? (
@@ -1441,10 +1677,13 @@ export default function Home() {
                     </button>
                     <button
                       className="outline-button"
-                      disabled={activeVerse >= selectedSurah.ayahs}
+                      disabled={activeVerse >= (reviewSessionEnd ?? selectedSurah.ayahs)}
                       onClick={() => {
                         setActiveVerse(
-                          Math.min(activeVerse + 1, selectedSurah.ayahs)
+                          Math.min(
+                            activeVerse + 1,
+                            reviewSessionEnd ?? selectedSurah.ayahs
+                          )
                         );
                         setRevealed(false);
                       }}
@@ -1453,11 +1692,7 @@ export default function Home() {
                     </button>
                     <button
                       className="primary-button"
-                      onClick={() => {
-                        setCompletedReview(true);
-                        setToast("أحسنت، تم تسجيل المراجعة");
-                        setIsTestMode(false);
-                      }}
+                      onClick={finishReviewSession}
                     >
                       تم التسميع <Check size={16} />
                     </button>
