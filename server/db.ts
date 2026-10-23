@@ -1,9 +1,9 @@
 import { and, eq, gt, lt, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { authTokens, userData, users } from "../drizzle/schema";
-import { userDataMapSchema, type UserDataMap } from "../shared/userData";
+import { authTokens, userData, users } from "../drizzle/schema.js";
+import { userDataMapSchema, type UserDataMap } from "../shared/userData.js";
 import { createPool } from "mysql2/promise";
-import { mysqlConfig } from "./mysqlConfig";
+import { mysqlConfig } from "./mysqlConfig.js";
 
 const createDatabase = () => drizzle(createPool(mysqlConfig()));
 let _db: ReturnType<typeof createDatabase> | null = null;

@@ -1,9 +1,9 @@
 import { randomBytes, scrypt as nodeScrypt, timingSafeEqual } from "node:crypto";
 import { parse as parseCookieHeader } from "cookie";
 import { SignJWT, jwtVerify } from "jose";
-import { COOKIE_NAME } from "@shared/const";
-import type { User } from "../../drizzle/schema";
-import { getUserById } from "../db";
+import { COOKIE_NAME } from "../../shared/const.js";
+import type { User } from "../../drizzle/schema.js";
+import { getUserById } from "../db.js";
 
 const SESSION_TTL_SECONDS = 60 * 60 * 24 * 7;
 const scryptOptions = { N: 16384, r: 8, p: 1, maxmem: 64 * 1024 * 1024 };

@@ -1,5 +1,5 @@
 import { boolean, datetime, int, json, mysqlEnum, mysqlTable, text, timestamp, uniqueIndex, varchar } from "drizzle-orm/mysql-core";
-import type { UserDataMap } from "../shared/userData";
+import type { UserDataMap } from "../shared/userData.js";
 
 /**
  * User accounts for independent email/password authentication.

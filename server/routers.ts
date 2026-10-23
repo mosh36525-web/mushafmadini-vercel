@@ -1,14 +1,14 @@
 import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
-import { COOKIE_NAME } from "@shared/const";
-import { userDataSaveInputSchema } from "@shared/userData";
-import * as db from "./db";
-import { getSessionCookieOptions } from "./_core/cookies";
-import { authSecretConfigured, createSessionToken, hashPassword, verifyPassword } from "./_core/emailAuth";
-import { emailDeliveryConfigured, sendPasswordResetEmail } from "./_core/emailDelivery";
-import { systemRouter } from "./_core/systemRouter";
-import { protectedProcedure, publicProcedure, router } from "./_core/trpc";
+import { COOKIE_NAME } from "../shared/const.js";
+import { userDataSaveInputSchema } from "../shared/userData.js";
+import * as db from "./db.js";
+import { getSessionCookieOptions } from "./_core/cookies.js";
+import { authSecretConfigured, createSessionToken, hashPassword, verifyPassword } from "./_core/emailAuth.js";
+import { emailDeliveryConfigured, sendPasswordResetEmail } from "./_core/emailDelivery.js";
+import { systemRouter } from "./_core/systemRouter.js";
+import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 
 const authInput = z.object({
   email: z.string().trim().max(320).email().transform(value => value.toLowerCase()),

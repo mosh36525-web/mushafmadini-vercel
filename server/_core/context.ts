@@ -1,6 +1,6 @@
 import type { CreateExpressContextOptions } from "@trpc/server/adapters/express";
-import type { User } from "../../drizzle/schema";
-import { authenticateEmailSession } from "./emailAuth";
+import type { User } from "../../drizzle/schema.js";
+import { authenticateEmailSession } from "./emailAuth.js";
 
 export type TrpcContext = {
   req: CreateExpressContextOptions["req"];

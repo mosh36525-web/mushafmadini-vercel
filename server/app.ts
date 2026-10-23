@@ -1,9 +1,9 @@
 import express, { type Express } from "express";
 import { createExpressMiddleware } from "@trpc/server/adapters/express";
-import { appRouter } from "./routers";
-import { createContext } from "./_core/context";
-import { getPlatformHealth } from "./_core/platformHealth";
-import { sameOriginMutations } from "./security";
+import { appRouter } from "./routers.js";
+import { createContext } from "./_core/context.js";
+import { getPlatformHealth } from "./_core/platformHealth.js";
+import { sameOriginMutations } from "./security.js";
 
 /**
  * Builds only the shared HTTP application. Starting a listener stays in startServer,

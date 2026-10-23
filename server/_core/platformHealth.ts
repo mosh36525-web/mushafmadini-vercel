@@ -1,4 +1,4 @@
-import { emailDeliveryConfigured } from "./emailDelivery";
+import { emailDeliveryConfigured } from "./emailDelivery.js";
 
 const REQUIRED_SERVICE_VARIABLES = [
   "AUTH_JWT_SECRET",
