@@ -9,6 +9,7 @@ import {
   Vibrate,
 } from "lucide-react";
 import "./devotional.css";
+import { getTasbihVibrationApi, sendTasbihVibration } from "@shared/tasbihVibration";
 
 type TasbihPageProps = {
   notify: (message: string) => void;
@@ -135,9 +136,10 @@ export default function TasbihPage({ notify }: TasbihPageProps) {
   const [targetDraft, setTargetDraft] = useState("33");
   const [showCustomTarget, setShowCustomTarget] = useState(false);
   const [resetOpen, setResetOpen] = useState(false);
+  const [vibrationMessage, setVibrationMessage] = useState("");
 
-  const vibrationSupported =
-    typeof navigator !== "undefined" && "vibrate" in navigator;
+  const vibrationApi = getTasbihVibrationApi();
+  const vibrationSupported = vibrationApi !== null;
   const preset = presetDhikrs.find(dhikr => dhikr.id === selectedId);
   const selectedLabel = preset?.label ?? data.labels[selectedId] ?? "ذكر مخصص";
   const count = data.counts[selectedId] ?? 0;
@@ -204,6 +206,17 @@ export default function TasbihPage({ notify }: TasbihPageProps) {
     setResetOpen(false);
   }
 
+  function testVibration() {
+    const result = sendTasbihVibration(vibrationApi);
+    setVibrationMessage(
+      result === "sent"
+        ? "أُرسلت نبضة اختبار. تأكد من تفعيل اهتزاز الجهاز وإلغاء الوضع الصامت إن لزم."
+        : result === "unsupported"
+          ? "هذا المتصفح لا يتيح الاهتزاز لصفحات الويب."
+          : "رفض المتصفح الاهتزاز. تحقق من إعدادات الجهاز أو جرّب متصفحًا مدعومًا."
+    );
+  }
+
   function increase() {
     const targetAtTap = target;
     let reachedTarget = false;
@@ -218,11 +231,14 @@ export default function TasbihPage({ notify }: TasbihPageProps) {
       };
     });
 
-    if (data.vibration && vibrationSupported) {
-      try {
-        navigator.vibrate(12);
-      } catch {
-        // Some browsers expose vibration but do not allow it in the current context.
+    if (data.vibration) {
+      const result = sendTasbihVibration(vibrationApi);
+      if (result !== "sent") {
+        setVibrationMessage(
+          result === "unsupported"
+            ? "هذا المتصفح لا يتيح الاهتزاز لصفحات الويب."
+            : "تعذر تنفيذ الاهتزاز؛ تحقق من إعدادات الجهاز."
+        );
       }
     }
     if (reachedTarget) notify("أتممت هدفك الشخصي لهذا الذكر");
@@ -482,24 +498,39 @@ export default function TasbihPage({ notify }: TasbihPageProps) {
             </p>
           </div>
 
-          <label
-            className={`tasbih-vibration ${vibrationSupported ? "" : "unsupported"}`}
-          >
-            <input
-              type="checkbox"
-              checked={data.vibration}
+          <div className="tasbih-vibration-row">
+            <label
+              className={`tasbih-vibration ${vibrationSupported ? "" : "unsupported"}`}
+            >
+              <input
+                type="checkbox"
+                checked={data.vibration}
+                disabled={!vibrationSupported}
+                onChange={event => {
+                  setVibrationMessage("");
+                  commit(current => ({
+                    ...current,
+                    vibration: event.target.checked,
+                  }));
+                }}
+              />
+              <Vibrate size={17} />
+              <span>اهتزاز خفيف عند الزيادة</span>
+            </label>
+            <button
+              className="tasbih-vibration-test"
+              type="button"
+              onClick={testVibration}
               disabled={!vibrationSupported}
-              onChange={event =>
-                commit(current => ({
-                  ...current,
-                  vibration: event.target.checked,
-                }))
-              }
-            />
-            <Vibrate size={17} />
-            <span>اهتزاز خفيف عند الزيادة</span>
-            {!vibrationSupported && <small>غير مدعوم في هذا المتصفح</small>}
-          </label>
+            >
+              اختبار
+            </button>
+          </div>
+          <p className="tasbih-vibration-hint" role="status" aria-live="polite">
+            {!vibrationSupported
+              ? "غير مدعوم في هذا المتصفح. أغلب متصفحات iPhone لا تسمح لصفحات الويب بالاهتزاز."
+              : vibrationMessage || "فعّل الخيار ثم اضغط اختبار للتأكد من استجابة جهازك."}
+          </p>
         </aside>
       </section>
     </main>

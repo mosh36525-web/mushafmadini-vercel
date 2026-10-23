@@ -626,16 +626,24 @@
   line-height: 1.7;
 }
 
-.tasbih-vibration {
+.tasbih-vibration-row {
   display: flex;
   align-items: center;
-  flex-wrap: wrap;
+  justify-content: space-between;
   gap: 8px;
   margin-top: 17px;
   padding-top: 15px;
   border-top: 1px solid var(--line);
+}
+.tasbih-vibration {
+  display: flex;
+  flex: 1 1 auto;
+  min-width: 0;
+  align-items: center;
+  gap: 8px;
   color: var(--muted);
   font-size: 11px;
+  cursor: pointer;
 }
 .tasbih-vibration input {
   width: 15px;
@@ -645,14 +653,37 @@
 .tasbih-vibration svg {
   color: var(--gold);
 }
-.tasbih-vibration small {
-  width: 100%;
-  margin-right: 24px;
+.tasbih-vibration-test {
+  flex: 0 0 auto;
+  padding: 6px 11px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .04);
+  color: var(--text);
+  font-size: 10px;
+  transition: border-color .18s ease, background .18s ease;
+}
+.tasbih-vibration-test:not(:disabled):hover {
+  border-color: var(--gold);
+  background: rgba(214, 168, 79, .12);
+}
+.tasbih-vibration-test:focus-visible {
+  outline: 2px solid var(--gold);
+  outline-offset: 2px;
+}
+.tasbih-vibration-test:disabled {
+  cursor: not-allowed;
+  opacity: .55;
+}
+.tasbih-vibration-hint {
+  margin: 7px 0 0 24px;
   color: var(--muted-2);
   font-size: 9px;
+  line-height: 1.7;
 }
 .tasbih-vibration.unsupported {
   opacity: 0.63;
+  cursor: not-allowed;
 }
 
 @media (max-width: 950px) {
