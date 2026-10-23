@@ -1,6 +1,6 @@
-import { and, eq, gt, lt, sql } from "drizzle-orm";
+import { and, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { authTokens, userData, users } from "../drizzle/schema.js";
+import { recoveryCodes, userData, users } from "../drizzle/schema.js";
 import { userDataMapSchema, type UserDataMap } from "../shared/userData.js";
 import { createPool } from "mysql2/promise";
 import { mysqlConfig } from "./mysqlConfig.js";
@@ -23,88 +23,74 @@ export async function getUserById(id: number) {
   return rows[0];
 }
 
-export async function getUserByEmail(email: string) {
+export async function getUserByUsername(username: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  const rows = await db.select().from(users).where(eq(users.email, email)).limit(1);
+  const rows = await db.select().from(users).where(eq(users.username, username)).limit(1);
   return rows[0];
 }
 
-export async function createEmailUser(email: string, name: string, passwordHash: string) {
+/** Create a username account and its recovery-code hashes atomically. */
+export async function createUsernameUser(
+  username: string,
+  name: string,
+  passwordHash: string,
+  recoveryCodeHashes: string[],
+) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  await db.insert(users).values({
-    openId: null,
-    email,
-    name,
-    passwordHash,
-    emailVerified: false,
-    loginMethod: "email",
-    lastSignedIn: new Date(),
+  return db.transaction(async tx => {
+    await tx.insert(users).values({
+      openId: null,
+      email: null,
+      username,
+      name,
+      passwordHash,
+      emailVerified: false,
+      loginMethod: "username",
+      lastSignedIn: new Date(),
+    });
+    const rows = await tx.select().from(users).where(eq(users.username, username)).limit(1);
+    const user = rows[0];
+    if (!user) throw new Error("Failed to load inserted user");
+    await tx.insert(recoveryCodes).values(recoveryCodeHashes.map(codeHash => ({ userId: user.id, codeHash })));
+    return user;
   });
-  return getUserByEmail(email);
+}
+
+/** Atomically consume one recovery code, replace the password, and revoke old sessions. */
+export async function recoverUsernamePassword(username: string, codeHash: string, passwordHash: string): Promise<boolean> {
+  const db = await getDb();
+  if (!db) throw new Error("Database is not available");
+  return db.transaction(async tx => {
+    const rows = await tx.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1);
+    const user = rows[0];
+    if (!user) return false;
+    const codes = await tx.select({ id: recoveryCodes.id }).from(recoveryCodes).where(and(
+      eq(recoveryCodes.userId, user.id),
+      eq(recoveryCodes.codeHash, codeHash),
+      eq(recoveryCodes.used, false),
+    )).limit(1);
+    const code = codes[0];
+    if (!code) return false;
+    const consumed = await tx.update(recoveryCodes).set({ used: true }).where(and(
+      eq(recoveryCodes.id, code.id),
+      eq(recoveryCodes.used, false),
+    ));
+    const affectedRows = Number((consumed as unknown as [{ affectedRows?: number }])[0]?.affectedRows ?? 0);
+    if (affectedRows !== 1) return false;
+    await tx.update(users).set({
+      passwordHash,
+      sessionVersion: sql`${users.sessionVersion} + 1`,
+    }).where(eq(users.id, user.id));
+    return true;
+  });
 }
 
 export async function markUserSignedIn(id: number) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
   await db.update(users).set({ lastSignedIn: new Date() }).where(eq(users.id, id));
-}
-
-export async function invalidatePasswordResetTokens(userId: number) {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  await db.update(authTokens).set({ used: true }).where(and(
-    eq(authTokens.userId, userId),
-    eq(authTokens.type, "RESET_PASSWORD"),
-    eq(authTokens.used, false),
-  ));
-}
-
-export async function deleteExpiredAuthTokens(now = new Date()) {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  await db.delete(authTokens).where(lt(authTokens.expiresAt, now));
-}
-
-export async function createPasswordResetToken(userId: number, tokenHash: string, expiresAt: Date) {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  await db.insert(authTokens).values({ userId, tokenHash, type: "RESET_PASSWORD", expiresAt });
-}
-
-export async function getActivePasswordResetToken(tokenHash: string, now = new Date()) {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  const rows = await db.select().from(authTokens).where(and(
-    eq(authTokens.tokenHash, tokenHash),
-    eq(authTokens.type, "RESET_PASSWORD"),
-    eq(authTokens.used, false),
-    gt(authTokens.expiresAt, now),
-  )).limit(1);
-  return rows[0];
-}
-
-export async function consumePasswordResetToken(id: number, now = new Date()): Promise<boolean> {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  const result = await db.update(authTokens).set({ used: true }).where(and(
-    eq(authTokens.id, id),
-    eq(authTokens.type, "RESET_PASSWORD"),
-    eq(authTokens.used, false),
-    gt(authTokens.expiresAt, now),
-  ));
-  return Number((result as unknown as [{ affectedRows?: number }])[0]?.affectedRows ?? 0) === 1;
-}
-
-export async function updateUserPassword(userId: number, passwordHash: string) {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  await db.update(users).set({
-    passwordHash,
-    emailVerified: true,
-    sessionVersion: sql`${users.sessionVersion} + 1`,
-  }).where(eq(users.id, userId));
 }
 
 export type StoredUserData = {

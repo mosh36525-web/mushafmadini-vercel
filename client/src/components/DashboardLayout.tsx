@@ -64,7 +64,7 @@ export default function DashboardLayout({
               Sign in to continue
             </h1>
             <p className="text-sm text-muted-foreground text-center max-w-sm">
-              Access to this dashboard requires an account. Sign in with your email and password.
+              Access to this dashboard requires an account. Sign in with your username and password.
             </p>
           </div>
           <Button
@@ -211,8 +211,8 @@ function DashboardLayoutContent({
                     <p className="text-sm font-medium truncate leading-none">
                       {user?.name || "-"}
                     </p>
-                    <p className="text-xs text-muted-foreground truncate mt-1.5">
-                      {user?.email || "-"}
+                    <p className="text-xs text-muted-foreground truncate mt-1.5" dir="ltr">
+                      {user?.username ? `@${user.username}` : "-"}
                     </p>
                   </div>
                 </button>

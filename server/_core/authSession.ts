@@ -75,7 +75,7 @@ async function verifySessionToken(token: string): Promise<{ userId: number; vers
   }
 }
 
-export async function authenticateEmailSession(req: unknown): Promise<User | null> {
+export async function authenticateSession(req: unknown): Promise<User | null> {
   if (typeof req !== "object" || req === null) return null;
   const headers = (req as { headers?: unknown }).headers;
   if (typeof headers !== "object" || headers === null) return null;

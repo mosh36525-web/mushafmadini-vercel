@@ -2,7 +2,7 @@ import { boolean, datetime, int, json, mysqlEnum, mysqlTable, text, timestamp, u
 import type { UserDataMap } from "../shared/userData.js";
 
 /**
- * User accounts for independent email/password authentication.
+ * User accounts for independent username/password authentication.
  * Extend this file with additional tables as your product grows.
  * Columns use camelCase to match both database fields and generated types.
  */
@@ -15,9 +15,11 @@ export const users = mysqlTable("users", {
   /** Legacy nullable identifier retained for compatibility; local email accounts do not use it. */
   openId: varchar("openId", { length: 64 }).unique(),
   name: text("name"),
-  /** Unique email address used for standalone authentication. */
+  /** Optional legacy email; new accounts authenticate with username only. */
   email: varchar("email", { length: 320 }).unique(),
-  /** Scrypt password hash for standalone email/password authentication. */
+  /** Unique public login name for username/password authentication. */
+  username: varchar("username", { length: 32 }).unique(),
+  /** Scrypt password hash for standalone password authentication. */
   passwordHash: varchar("passwordHash", { length: 255 }),
   /** Incremented when a password is reset to revoke all previously issued sessions. */
   sessionVersion: int("sessionVersion").default(0).notNull(),
@@ -33,9 +35,7 @@ export const users = mysqlTable("users", {
 export type User = typeof users.$inferSelect;
 export type InsertUser = typeof users.$inferInsert;
 
-/**
- * Reserved single-use verification/reset tokens; delivery remains disabled until an email provider is configured.
- */
+/** Legacy email-reset tokens retained in the schema for existing deployments; username recovery uses recoveryCodes. */
 export const authTokens = mysqlTable("auth_tokens", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
@@ -50,6 +50,18 @@ export const authTokens = mysqlTable("auth_tokens", {
 
 export type AuthToken = typeof authTokens.$inferSelect;
 export type InsertAuthToken = typeof authTokens.$inferInsert;
+
+/** One-time recovery codes. Only a SHA-256 hash is stored; plaintext is returned once at signup. */
+export const recoveryCodes = mysqlTable("recovery_codes", {
+  id: int("id").autoincrement().primaryKey(),
+  userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),
+  codeHash: varchar("codeHash", { length: 64 }).notNull().unique(),
+  used: boolean("used").default(false).notNull(),
+  createdAt: timestamp("createdAt").defaultNow().notNull(),
+});
+
+export type RecoveryCode = typeof recoveryCodes.$inferSelect;
+export type InsertRecoveryCode = typeof recoveryCodes.$inferInsert;
 
 /**
  * One bounded preferences/progress document per authenticated user.

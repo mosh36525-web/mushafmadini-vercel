@@ -29,6 +29,13 @@
       "when": 1792523627595,
       "tag": "0003_eager_ser_duncan",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "5",
+      "when": 1792778362372,
+      "tag": "0004_username_recovery_codes",
+      "breakpoints": true
     }
   ]
 }

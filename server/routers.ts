@@ -5,33 +5,45 @@ import { COOKIE_NAME } from "../shared/const.js";
 import { userDataSaveInputSchema } from "../shared/userData.js";
 import * as db from "./db.js";
 import { getSessionCookieOptions } from "./_core/cookies.js";
-import { authSecretConfigured, createSessionToken, hashPassword, verifyPassword } from "./_core/emailAuth.js";
-import { emailDeliveryConfigured, sendPasswordResetEmail } from "./_core/emailDelivery.js";
+import { authSecretConfigured, createSessionToken, hashPassword, verifyPassword } from "./_core/authSession.js";
 import { systemRouter } from "./_core/systemRouter.js";
 import { protectedProcedure, publicProcedure, router } from "./_core/trpc.js";
 
+const usernameSchema = z.string().trim().min(3).max(32).regex(/^[a-zA-Z0-9_.-]+$/, "اسم المستخدم يقبل الحروف الإنجليزية والأرقام و . _ - فقط.").transform(value => value.toLowerCase());
 const authInput = z.object({
-  email: z.string().trim().max(320).email().transform(value => value.toLowerCase()),
+  username: usernameSchema,
   password: z.string().min(1).max(128),
 });
 const registerInput = authInput.extend({
   name: z.string().trim().min(2).max(80),
   password: z.string().min(10).max(128),
 });
-const resetRequestInput = z.object({
-  email: z.string().trim().max(320).email().transform(value => value.toLowerCase()),
-});
-const resetPasswordInput = z.object({
-  token: z.string().min(40).max(100),
+const recoveryCodeSchema = z.string().trim().min(24).max(29)
+  .transform(value => value.replace(/-/g, "").toUpperCase())
+  .pipe(z.string().length(24).regex(/^[A-F0-9]+$/));
+const recoveryInput = z.object({
+  username: usernameSchema,
+  recoveryCode: recoveryCodeSchema,
   password: z.string().min(10).max(128),
 });
+
+const RECOVERY_CODE_COUNT = 10;
+function makeRecoveryCodes(): string[] {
+  return Array.from({ length: RECOVERY_CODE_COUNT }, () =>
+    randomBytes(12).toString("hex").toUpperCase().match(/.{1,4}/g)!.join("-"),
+  );
+}
+
+function hashRecoveryCode(code: string): string {
+  return createHash("sha256").update(code.replace(/-/g, "").toUpperCase()).digest("hex");
+}
 
 // Modest per-instance limits reduce password guessing; do not treat these as a
 // substitute for an edge/WAF rate limit on public production deployments.
 const authAttempts = new Map<string, { count: number; resetAt: number }>();
-function checkAuthRateLimit(ip: string, email: string): void {
+function checkAuthRateLimit(ip: string, username: string): void {
   const now = Date.now();
-  const keys = [`ip:${ip}`, `email:${email}`];
+  const keys = [`ip:${ip}`, `username:${username}`];
   for (const [key, record] of authAttempts) if (record.resetAt <= now) authAttempts.delete(key);
   for (const key of keys) {
     const record = authAttempts.get(key);
@@ -51,7 +63,7 @@ function publicUser(user: NonNullable<Awaited<ReturnType<typeof db.getUserById>>
   return {
     id: user.id,
     name: user.name,
-    email: user.email,
+    username: user.username,
     role: user.role,
     createdAt: user.createdAt,
     lastSignedIn: user.lastSignedIn,
@@ -80,17 +92,17 @@ export const appRouter = router({
       if (process.env.AUTH_ALLOW_SIGNUP?.toLowerCase() === "false") {
         throw new TRPCError({ code: "FORBIDDEN", message: "التسجيل مغلق حاليًا." });
       }
-      checkAuthRateLimit(ctx.req.ip || "unknown", input.email);
+      checkAuthRateLimit(ctx.req.ip || "unknown", input.username);
       const passwordHash = await hashPassword(input.password);
+      const recoveryCodes = makeRecoveryCodes();
       try {
-        const user = await db.createEmailUser(input.email, input.name, passwordHash);
-        if (!user) throw new Error("Failed to load inserted user");
+        const user = await db.createUsernameUser(input.username, input.name, passwordHash, recoveryCodes.map(hashRecoveryCode));
         const token = await createSessionToken(user);
         setSessionCookie(ctx, token);
-        return publicUser(user);
+        return { user: publicUser(user), recoveryCodes };
       } catch (error) {
         if ((error as { code?: string })?.code === "ER_DUP_ENTRY") {
-          throw new TRPCError({ code: "CONFLICT", message: "يوجد حساب مسجل بهذا البريد بالفعل." });
+          throw new TRPCError({ code: "CONFLICT", message: "اسم المستخدم مستخدم بالفعل. اختر اسمًا آخر." });
         }
         if (error instanceof TRPCError) throw error;
         throw new TRPCError({ code: "INTERNAL_SERVER_ERROR", message: "تعذر إنشاء الحساب. تحقق من إعداد قاعدة البيانات." });
@@ -98,10 +110,10 @@ export const appRouter = router({
     }),
     login: publicProcedure.input(authInput).mutation(async ({ ctx, input }) => {
       ensureAuthReady();
-      checkAuthRateLimit(ctx.req.ip || "unknown", input.email);
-      const user = await db.getUserByEmail(input.email);
+      checkAuthRateLimit(ctx.req.ip || "unknown", input.username);
+      const user = await db.getUserByUsername(input.username);
       if (!user || !(await verifyPassword(input.password, user.passwordHash))) {
-        throw new TRPCError({ code: "UNAUTHORIZED", message: "البريد الإلكتروني أو كلمة المرور غير صحيحة." });
+        throw new TRPCError({ code: "UNAUTHORIZED", message: "اسم المستخدم أو كلمة المرور غير صحيحة." });
       }
       await db.markUserSignedIn(user.id);
       const refreshed = { ...user, lastSignedIn: new Date() };
@@ -109,44 +121,14 @@ export const appRouter = router({
       setSessionCookie(ctx, token);
       return publicUser(refreshed);
     }),
-    requestPasswordReset: publicProcedure.input(resetRequestInput).mutation(async ({ ctx, input }) => {
-      checkAuthRateLimit(ctx.req.ip || "unknown", input.email);
-      try {
-        if (emailDeliveryConfigured()) {
-          const user = await db.getUserByEmail(input.email);
-          if (user?.passwordHash && user.loginMethod === "email") {
-            await db.deleteExpiredAuthTokens();
-            await db.invalidatePasswordResetTokens(user.id);
-            const token = randomBytes(32).toString("base64url");
-            const tokenHash = createHash("sha256").update(token).digest("hex");
-            await db.createPasswordResetToken(user.id, tokenHash, new Date(Date.now() + 30 * 60 * 1000));
-            try {
-              await sendPasswordResetEmail(input.email, token);
-            } catch {
-              await db.invalidatePasswordResetTokens(user.id);
-              console.error("Password reset email delivery failed.");
-            }
-          }
-        }
-      } catch {
-        // Keep response and timing independent of whether the account exists.
-        console.error("Password reset request could not be processed.");
-      }
-      return { success: true, message: "إذا كان البريد مسجلًا، فستصلك رسالة برابط الاستعادة." } as const;
-    }),
-    resetPassword: publicProcedure.input(resetPasswordInput).mutation(async ({ input, ctx }) => {
-      const tokenHash = createHash("sha256").update(input.token).digest("hex");
-      checkAuthRateLimit(ctx.req.ip || "unknown", `reset:${tokenHash}`);
-      const resetToken = await db.getActivePasswordResetToken(tokenHash);
-      if (!resetToken) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "رابط الاستعادة غير صالح أو انتهت صلاحيته." });
-      }
-      if (!(await db.consumePasswordResetToken(resetToken.id))) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "رابط الاستعادة غير صالح أو استُخدم من قبل." });
-      }
+    recoverWithCode: publicProcedure.input(recoveryInput).mutation(async ({ ctx, input }) => {
+      ensureAuthReady();
+      checkAuthRateLimit(ctx.req.ip || "unknown", `recovery:${input.username}`);
       const passwordHash = await hashPassword(input.password);
-      await db.updateUserPassword(resetToken.userId, passwordHash);
-      await db.invalidatePasswordResetTokens(resetToken.userId);
+      const recovered = await db.recoverUsernamePassword(input.username, hashRecoveryCode(input.recoveryCode), passwordHash);
+      if (!recovered) {
+        throw new TRPCError({ code: "BAD_REQUEST", message: "اسم المستخدم أو رمز الاستعادة غير صحيح، أو أن الرمز استُخدم من قبل." });
+      }
       return { success: true } as const;
     }),
     logout: publicProcedure.mutation(({ ctx }) => {

@@ -1,4 +1,4 @@
-import { useAuth, type EmailCredentials, type RegisterCredentials } from "@/_core/hooks/useAuth";
+import { useAuth, type UsernameCredentials, type RegisterCredentials } from "@/_core/hooks/useAuth";
 import { trpc } from "@/lib/trpc";
 import {
   ACCOUNT_SYNC_STORAGE_KEYS,
@@ -105,7 +105,7 @@ export function announceMadiniDataChange(keys?: readonly string[]): void {
 }
 
 /**
- * Synchronizes only whitelisted local product settings with the current email account.
+ * Synchronizes only whitelisted local product settings with the current username account.
  * The persistent visible-owner marker separates guest, account A, and account B data;
  * neither the marker nor any unapproved browser key is sent to the server.
  */
@@ -570,16 +570,16 @@ export function useAccountSync(options: UseAccountSyncOptions = {}) {
     return result;
   }, [acceptHydrationPayload]);
 
-  const login = useCallback(async (credentials: EmailCredentials) => {
+  const login = useCallback(async (credentials: UsernameCredentials) => {
     const user = await auth.login(credentials);
     setSyncStatus("hydrating");
     return user;
   }, [auth.login]);
 
   const register = useCallback(async (credentials: RegisterCredentials) => {
-    const user = await auth.register(credentials);
+    const registration = await auth.register(credentials);
     setSyncStatus("hydrating");
-    return user;
+    return registration;
   }, [auth.register]);
 
   return {

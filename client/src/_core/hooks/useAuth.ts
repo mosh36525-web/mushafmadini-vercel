@@ -1,8 +1,8 @@
 import { trpc } from "@/lib/trpc";
 import { useCallback } from "react";
 
-export type EmailCredentials = { email: string; password: string };
-export type RegisterCredentials = EmailCredentials & { name: string };
+export type UsernameCredentials = { username: string; password: string };
+export type RegisterCredentials = UsernameCredentials & { name: string };
 
 export function useAuth() {
   const utils = trpc.useUtils();
@@ -14,12 +14,12 @@ export function useAuth() {
     onSuccess: user => utils.auth.me.setData(undefined, user),
   });
   const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: user => utils.auth.me.setData(undefined, user),
+    onSuccess: result => utils.auth.me.setData(undefined, result.user),
   });
   const logoutMutation = trpc.auth.logout.useMutation();
 
   const login = useCallback(
-    (credentials: EmailCredentials) => loginMutation.mutateAsync(credentials),
+    (credentials: UsernameCredentials) => loginMutation.mutateAsync(credentials),
     [loginMutation.mutateAsync],
   );
   const register = useCallback(

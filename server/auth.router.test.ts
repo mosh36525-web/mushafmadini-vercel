@@ -1,27 +1,17 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 const database = vi.hoisted(() => ({
-  createEmailUser: vi.fn(),
-  getUserByEmail: vi.fn(),
+  createUsernameUser: vi.fn(),
+  getUserByUsername: vi.fn(),
   getUserById: vi.fn(),
   markUserSignedIn: vi.fn(),
-  deleteExpiredAuthTokens: vi.fn(),
-  invalidatePasswordResetTokens: vi.fn(),
-  createPasswordResetToken: vi.fn(),
-  getActivePasswordResetToken: vi.fn(),
-  consumePasswordResetToken: vi.fn(),
-  updateUserPassword: vi.fn(),
+  recoverUsernamePassword: vi.fn(),
   getUserData: vi.fn(),
   saveUserData: vi.fn(),
 }));
 vi.mock("./db", () => database);
 
-const delivery = vi.hoisted(() => ({
-  emailDeliveryConfigured: vi.fn(),
-  sendPasswordResetEmail: vi.fn(),
-}));
-vi.mock("./_core/emailDelivery", () => delivery);
-
+import { createHash } from "node:crypto";
 import { appRouter } from "./routers";
 import type { TrpcContext } from "./_core/context";
 
@@ -31,11 +21,12 @@ function sampleUser(passwordHash: string | null = null) {
     id: 73,
     openId: null,
     name: "اختبار",
-    email: "test@example.com",
+    email: null,
+    username: "test.user",
     passwordHash,
     sessionVersion: 0,
     emailVerified: false,
-    loginMethod: "email",
+    loginMethod: "username",
     role: "user" as const,
     createdAt: now,
     updatedAt: now,
@@ -57,12 +48,10 @@ function caller(ip = "198.51.100.27") {
   return { api: appRouter.createCaller(ctx), cookieCalls };
 }
 
-describe("email authentication router", () => {
+describe("username authentication router", () => {
   const previousSecret = process.env.AUTH_JWT_SECRET;
   beforeEach(() => {
     vi.clearAllMocks();
-    delivery.emailDeliveryConfigured.mockReturnValue(false);
-    delivery.sendPasswordResetEmail.mockResolvedValue(undefined);
     process.env.AUTH_JWT_SECRET = "test-only-secret-long-enough-for-hmac-signing";
     delete process.env.AUTH_ALLOW_SIGNUP;
   });
@@ -71,92 +60,95 @@ describe("email authentication router", () => {
     else process.env.AUTH_JWT_SECRET = previousSecret;
   });
 
-  it("registers a normalized email, returns a safe profile, and issues an HttpOnly cookie", async () => {
-    database.createEmailUser.mockImplementation(async (email: string, name: string, passwordHash: string) => ({
-      ...sampleUser(passwordHash), email, name,
+  it("registers a normalized username and returns ten one-time recovery codes once", async () => {
+    database.createUsernameUser.mockImplementation(async (username: string, name: string, passwordHash: string) => ({
+      ...sampleUser(passwordHash), username, name,
     }));
+    const { hashPassword } = await import("./_core/authSession");
     const { api, cookieCalls } = caller();
     const result = await api.auth.register({
       name: "مستخدم تجريبي",
-      email: " TEST@EXAMPLE.COM ",
+      username: " Test.User ",
       password: "Long-Password-123",
     });
 
-    expect(database.createEmailUser).toHaveBeenCalledOnce();
-    expect(database.createEmailUser.mock.calls[0]?.[0]).toBe("test@example.com");
-    expect(database.createEmailUser.mock.calls[0]?.[2]).toMatch(/^scrypt\$/);
-    expect(result).not.toHaveProperty("passwordHash");
-    expect(result.email).toBe("test@example.com");
+    expect(database.createUsernameUser).toHaveBeenCalledOnce();
+    const [username, , passwordHash, codeHashes] = database.createUsernameUser.mock.calls[0] as [string, string, string, string[]];
+    expect(username).toBe("test.user");
+    expect(passwordHash).toMatch(/^scrypt\$/);
+    expect(await hashPassword("Long-Password-123")).not.toBe(passwordHash);
+    expect(codeHashes).toHaveLength(10);
+    expect(codeHashes.every(hash => /^[a-f0-9]{64}$/.test(hash))).toBe(true);
+    expect(result.recoveryCodes).toHaveLength(10);
+    expect(result.recoveryCodes.every(code => /^[A-F0-9]{4}(?:-[A-F0-9]{4}){5}$/.test(code))).toBe(true);
+    expect(codeHashes).not.toContain(result.recoveryCodes[0]);
+    expect(result.user).not.toHaveProperty("passwordHash");
+    expect(result.user.username).toBe("test.user");
+    expect(result.user).not.toHaveProperty("email");
     expect(cookieCalls).toHaveLength(1);
     expect(cookieCalls[0]?.options).toMatchObject({ httpOnly: true, sameSite: "lax", secure: false });
   });
 
-  it("authenticates a valid password without returning the stored hash", async () => {
-    const { hashPassword } = await import("./_core/emailAuth");
+  it("authenticates a valid password and normalizes the username without returning a hash", async () => {
+    const { hashPassword } = await import("./_core/authSession");
     const hash = await hashPassword("Long-Password-123");
-    database.getUserByEmail.mockResolvedValue(sampleUser(hash));
+    database.getUserByUsername.mockResolvedValue(sampleUser(hash));
     database.markUserSignedIn.mockResolvedValue(undefined);
     const { api, cookieCalls } = caller();
 
-    const result = await api.auth.login({ email: "test@example.com", password: "Long-Password-123" });
+    const result = await api.auth.login({ username: " TEST.USER ", password: "Long-Password-123" });
+    expect(database.getUserByUsername).toHaveBeenCalledWith("test.user");
     expect(result).not.toHaveProperty("passwordHash");
+    expect(result.username).toBe("test.user");
     expect(database.markUserSignedIn).toHaveBeenCalledWith(73);
     expect(cookieCalls).toHaveLength(1);
   });
 
   it("accepts a previously registered short password during login", async () => {
-    const { hashPassword } = await import("./_core/emailAuth");
+    const { hashPassword } = await import("./_core/authSession");
     const password = "Short7!";
     const hash = await hashPassword(password);
-    database.getUserByEmail.mockResolvedValue(sampleUser(hash));
+    database.getUserByUsername.mockResolvedValue(sampleUser(hash));
     database.markUserSignedIn.mockResolvedValue(undefined);
     const { api } = caller();
 
-    const result = await api.auth.login({ email: "test@example.com", password });
-    expect(result.email).toBe("test@example.com");
+    const result = await api.auth.login({ username: "test.user", password });
+    expect(result.username).toBe("test.user");
     expect(database.markUserSignedIn).toHaveBeenCalledWith(73);
   });
 
-  it("returns the same reset response for an unknown address without exposing account existence", async () => {
-    database.getUserByEmail.mockResolvedValue(undefined);
-    const result = await caller("203.0.113.8").api.auth.requestPasswordReset({ email: "unknown@example.com" });
-    expect(result).toEqual({ success: true, message: "إذا كان البريد مسجلًا، فستصلك رسالة برابط الاستعادة." });
-    expect(delivery.sendPasswordResetEmail).not.toHaveBeenCalled();
+  it("does not authenticate unknown users or accounts without a local password", async () => {
+    database.getUserByUsername.mockResolvedValue(undefined);
+    const { api } = caller("203.0.113.8");
+    await expect(api.auth.login({ username: "unknown-user", password: "Any-Password-123" }))
+      .rejects.toMatchObject({ code: "UNAUTHORIZED" });
+    expect(database.getUserByUsername).toHaveBeenCalledWith("unknown-user");
   });
 
-  it("stores only a hash of reset tokens and never returns the token to the requester", async () => {
-    delivery.emailDeliveryConfigured.mockReturnValue(true);
-    database.getUserByEmail.mockResolvedValue(sampleUser("existing-password-hash"));
-    const result = await caller("203.0.113.9").api.auth.requestPasswordReset({ email: " TEST@example.com " });
-    expect(result.success).toBe(true);
-    expect(database.invalidatePasswordResetTokens).toHaveBeenCalledWith(73);
-    expect(database.createPasswordResetToken).toHaveBeenCalledOnce();
-    const [, storedHash, expiry] = database.createPasswordResetToken.mock.calls[0] as [number, string, Date];
-    expect(storedHash).toMatch(/^[a-f0-9]{64}$/);
-    expect(expiry.getTime()).toBeGreaterThan(Date.now() + 29 * 60 * 1000);
-    const [recipient, rawToken] = delivery.sendPasswordResetEmail.mock.calls[0] as [string, string];
-    expect(recipient).toBe("test@example.com");
-    expect(rawToken).toHaveLength(43);
-    expect(result.message).not.toContain(rawToken);
-    expect(storedHash).not.toBe(rawToken);
-  });
-
-  it("consumes a reset token and stores a new password hash", async () => {
-    const { createHash } = await import("node:crypto");
-    const { hashPassword } = await import("./_core/emailAuth");
-    const rawToken = "x".repeat(43);
-    database.getActivePasswordResetToken.mockResolvedValue({
-      id: 101, userId: 73, tokenHash: createHash("sha256").update(rawToken).digest("hex"),
-      type: "RESET_PASSWORD", expiresAt: new Date(Date.now() + 60_000), used: false, createdAt: new Date(),
+  it("uses a recovery code once and stores only its SHA-256 hash", async () => {
+    const { hashPassword } = await import("./_core/authSession");
+    database.recoverUsernamePassword.mockResolvedValue(true);
+    const rawCode = "a1b2-c3d4-e5f6-a1b2-c3d4-e5f6";
+    const result = await caller("203.0.113.9").api.auth.recoverWithCode({
+      username: " TEST.USER ",
+      recoveryCode: rawCode,
+      password: "Brand-New-Password-123",
     });
-    database.consumePasswordResetToken.mockResolvedValue(true);
-    const result = await caller("203.0.113.10").api.auth.resetPassword({ token: rawToken, password: "Brand-New-Password-123" });
     expect(result).toEqual({ success: true });
-    expect(database.consumePasswordResetToken).toHaveBeenCalledWith(101);
-    expect(database.updateUserPassword).toHaveBeenCalledOnce();
-    const [userId, newHash] = database.updateUserPassword.mock.calls[0] as [number, string];
-    expect(userId).toBe(73);
-    expect(newHash).toMatch(/^scrypt\$/);
-    expect(await hashPassword("Brand-New-Password-123")).not.toBe(newHash);
+    const [username, storedHash, newPasswordHash] = database.recoverUsernamePassword.mock.calls[0] as [string, string, string];
+    expect(username).toBe("test.user");
+    expect(storedHash).toBe(createHash("sha256").update("A1B2C3D4E5F6A1B2C3D4E5F6").digest("hex"));
+    expect(storedHash).not.toBe(rawCode);
+    expect(newPasswordHash).toMatch(/^scrypt\$/);
+    expect(await hashPassword("Brand-New-Password-123")).not.toBe(newPasswordHash);
+  });
+
+  it("rejects an invalid or already-used recovery code", async () => {
+    database.recoverUsernamePassword.mockResolvedValue(false);
+    await expect(caller("203.0.113.10").api.auth.recoverWithCode({
+      username: "test.user",
+      recoveryCode: "a1b2-c3d4-e5f6-a1b2-c3d4-e5f6",
+      password: "Brand-New-Password-123",
+    })).rejects.toMatchObject({ code: "BAD_REQUEST" });
   });
 });

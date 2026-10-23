@@ -1,5 +1,3 @@
-import { emailDeliveryConfigured } from "./emailDelivery.js";
-
 const REQUIRED_SERVICE_VARIABLES = [
   "AUTH_JWT_SECRET",
   "DATABASE_URL",
@@ -9,7 +7,6 @@ const REQUIRED_SERVICE_VARIABLES = [
 export type PlatformHealth = {
   status: "ready" | "configuration_incomplete";
   missing: readonly (typeof REQUIRED_SERVICE_VARIABLES)[number][];
-  emailConfigured: boolean;
 };
 
 /** Browser-safe deployment readiness: values are deliberately never returned. */
@@ -21,6 +18,5 @@ export function getPlatformHealth(env: NodeJS.ProcessEnv = process.env): Platfor
   return {
     status: missing.length === 0 ? "ready" : "configuration_incomplete",
     missing,
-    emailConfigured: emailDeliveryConfigured(env),
   };
 }

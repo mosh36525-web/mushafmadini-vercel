@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
-import { hashPassword, verifyPassword } from "./_core/emailAuth";
+import { hashPassword, verifyPassword } from "./_core/authSession";
 
-describe("local email authentication", () => {
+describe("local password authentication", () => {
   it("stores only a salted scrypt hash and verifies the original password", async () => {
     const hash = await hashPassword("Correct-Horse-9876");
     expect(hash).toMatch(/^scrypt\$/);
