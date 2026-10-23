@@ -16,6 +16,10 @@ build/
 .env.test.local
 .env.production.local
 
+# Local database trust certificate and retired platform metadata
+/aiven-ca.pem
+/.manus-starter-init.json
+
 # IDE and editor files
 .vscode/
 .idea/

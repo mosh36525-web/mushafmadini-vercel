@@ -1,0 +1,14 @@
+تحديث آية اليوم أعلى الصفحة الرئيسية
+
+1) فك هذا الأرشيف إلى مجلد مؤقت.
+2) انسخ محتوياته إلى جذر المشروع E:\mushafmadini-vercel، مع دمج مجلد client واستبدال الملفات المطلوبة.
+3) التغيير يخص client/src/pages/Home.tsx وclient/src/pages/enhancements.css فقط، ولا يلمس قاعدة البيانات أو إعدادات الحساب.
+4) في PowerShell داخل E:\mushafmadini-vercel نفّذ:
+   git status --short
+   git add client/src/pages/Home.tsx client/src/pages/enhancements.css
+   git status --short
+5) بعد التأكد أن الملفات المعروضة هي المطلوب فقط، نفّذ:
+   git commit -m "Feature a daily Quran verse on the home page"
+   git push origin main
+   استخدم فرع Production الصحيح في Vercel إذا لم يكن main.
+6) انتظر Vercel حتى يصبح النشر Ready ثم افتح الصفحة الرئيسية. تظهر بطاقة «آية اليوم» فوق بطاقات الورد والصلاة، ويتغير نصها يوميًا من نص المصحف الكامل.

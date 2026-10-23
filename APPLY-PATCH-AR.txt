@@ -1,25 +1,24 @@
-تحديث مهم: تسجيل الدخول باسم المستخدم وكلمة المرور فقط
+إصلاح أخطاء Vercel وإضافة آية اليوم
 
-1) احفظ نسخة احتياطية من Aiven إذا لم تفعل ذلك.
-2) فك أحدث نسخة من هذا الأرشيف.
-3) انسخ محتويات الأرشيف إلى جذر المشروع E:\mushafmadini-vercel واختر دمج المجلدات واستبدال الملفات المتكررة.
-4) اترك .git وملف .env وشهادة aiven-ca.pem الموجودة في مشروعك كما هي؛ لا ترفعها إلى GitHub.
-5) احذف الملفات القديمة إن كانت موجودة:
-   server\_core\emailAuth.ts
-   server\_core\emailDelivery.ts
-   server\emailDelivery.test.ts
-   لا تحذف جداول Aiven أو بيانات الحسابات.
-6) حزمة التحديث تزيل شاشة ورموز الاستعادة، وتوقف endpoint قبولها. كما تضيف ترحيلًا 0005 يعطّل كل رموز الاستعادة القديمة التي سبق إصدارها؛ جدولها يبقى دون حذف بيانات.
-7) افتح PowerShell داخل E:\mushafmadini-vercel ونفّذ:
+أخطاء forgeApiKey وforgeApiUrl وoAuthServerUrl وappId تعني أن ملفات تكامل Manus/OAuth القديمة بقيت في commit السابق. لا تضف هذه المتغيرات؛ الموقع مستقل عنها. تتضمن الحزمة سكربتًا يحذف فقط الملفات القديمة غير المستخدمة، وإصلاح توافق TypeScript، وبطاقة آية اليوم.
+
+1) فك الأرشيف وانسخ محتوياته إلى E:\mushafmadini-vercel، واختر دمج المجلدات واستبدال الملفات.
+2) لا تحذف ولا ترفع إلى GitHub ملف .env أو شهادة aiven-ca.pem أو مجلد .git.
+3) افتح PowerShell داخل جذر المشروع ونفّذ السكربت:
+   cd E:\mushafmadini-vercel
+   powershell -ExecutionPolicy Bypass -File .\scripts\remove-legacy-platform-files.ps1
+   السكربت يحذف قائمة محددة من ملفات Manus/OAuth القديمة فقط؛ لا يغيّر متغيرات البيئة ولا جداول Aiven أو سجلات المستخدمين.
+4) راجع التغييرات:
    git status --short
-   git add -A
+   من الطبيعي أن ترى D بجانب الملفات القديمة التي حذفها السكربت. تأكد ألا تظهر .env أو aiven-ca.pem أو node_modules.
+5) أضف ملفات التطبيق والملفات القديمة المحذوفة فقط، دون ملفات أسرار الجذر:
+   git add -A -- client api server shared drizzle scripts README-DEPLOY-AR.md TODO.md vercel.json
    git status --short
-   راجع القائمة وتأكد أنها لا تحتوي .env أو شهادة أو مفتاحًا.
-8) إذا كان فرع Vercel الإنتاجي main، نفّذ:
-   git commit -m "Use username and password only for account access"
+6) ادفع إلى فرع الإنتاج main:
+   git commit -m "Remove legacy integrations and fix Vercel checks"
    git push origin main
-   وإلا استبدل main باسم الفرع الصحيح.
-9) انتظر أن يصبح نشر Vercel Ready؛ الترحيل 0005 سيبطل الرموز القديمة أثناء النشر.
-10) افتح الموقع. إنشاء الحساب يسجل دخولك مباشرة، وعلى جهاز آخر تدخل بالاسم وكلمة المرور نفسيهما.
+7) انتظر Vercel → Deployments حتى يظهر commit جديد على main بحالة Ready ويصبح Latest. لا تعِد نشر commit a17f943 القديم.
+8) إذا كان لدى Vercel Build Command مخصص في إعدادات لوحة التحكم، اجعله مطابقًا لـ vercel.json:
+   pnpm check && if [ "$VERCEL_ENV" = "production" ]; then pnpm db:check && pnpm db:migrate; fi && pnpm build:static
 
-مهم: لا يمكن استرجاع كلمة مرور منسية باسم المستخدم وحده. من دون بريد أو عامل تحقق بديل، احفظ كلمة مرورك في مكان آمن.
+بعدها تحقق أن pnpm check يمر دون أخطاء. سيُبطل ترحيل 0005 رموز الاستعادة القديمة، وستظهر آية اليوم أعلى الرئيسية. لا تحذف جداول أو بيانات Aiven.

@@ -13,7 +13,7 @@
 
 1. نزّل أحدث `mushafmadini-username-auth-fix.zip` وفكّه إلى مجلد مؤقت.
 2. انسخ المجلدات والملفات الموجودة داخل الأرشيف إلى جذر المشروع `E:\mushafmadini-vercel`، واختر **دمج المجلدات واستبدال الملفات المتكررة**.
-3. هذه حزمة ملفات معدّلة فقط؛ لا تحتوي المشروع كاملًا أو `.git` أو `.env` أو `node_modules` أو شهادة Aiven. اترك `.git` وملف `aiven-ca.pem` الموجودين في مشروعك دون تغيير.
+3. اترك `.git` وملف `aiven-ca.pem` المحلي دون تغيير. الشهادة وملف `.manus-starter-init.json` مستثنيان الآن من Git حتى لا يُرفع أي منهما بالخطأ.
 4. شغّل `powershell -ExecutionPolicy Bypass -File .\scripts\remove-legacy-platform-files.ps1` لإزالة ملفات Manus/OAuth القديمة غير المستخدمة، التي تشير إلى إعدادات Forge أو OAuth لم تعد في النظام. لا يحذف السكربت إعدادات البيئة أو شهادة Aiven أو جداول/سجلات Aiven.
 
 تأكد من استبدال الملفات تحت `client` و`server` و`drizzle`، وإضافة ترحيل `drizzle\0005_disable_legacy_recovery_codes.sql`. يوجد الترحيل السابق `0004` عندك من الحزمة الأولى.

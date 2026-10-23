@@ -1,10 +1,11 @@
 $ErrorActionPreference = "Stop"
 $projectRoot = Split-Path -Parent $PSScriptRoot
 if (-not (Test-Path -LiteralPath (Join-Path $projectRoot ".git"))) {
-  throw "لم أجد مجلد .git. انسخ الحزمة إلى مشروع Git الصحيح قبل تشغيل هذا السكربت."
+  throw "Git project folder not found. Copy this package into the correct project first."
 }
 
 $legacyFiles = @(
+  ".manus-starter-init.json",
   "client/public/__manus__/debug-collector.js",
   "client/public/manus-routes.json",
   "client/src/components/ManusDialog.tsx",
@@ -36,4 +37,4 @@ foreach ($relativePath in $legacyFiles) {
     Write-Host "Removed obsolete module: $relativePath"
   }
 }
-Write-Host "Finished removing listed legacy modules. No environment files, certificates, database tables, or user records were changed."
+Write-Host "Finished. Environment files, certificates, database tables, and user data were not changed."
