@@ -1,4 +1,3 @@
-import { createHash, randomBytes } from "node:crypto";
 import { z } from "zod";
 import { TRPCError } from "@trpc/server";
 import { COOKIE_NAME } from "../shared/const.js";
@@ -18,26 +17,6 @@ const registerInput = authInput.extend({
   name: z.string().trim().min(2).max(80),
   password: z.string().min(10).max(128),
 });
-const recoveryCodeSchema = z.string().trim().min(24).max(29)
-  .transform(value => value.replace(/-/g, "").toUpperCase())
-  .pipe(z.string().length(24).regex(/^[A-F0-9]+$/));
-const recoveryInput = z.object({
-  username: usernameSchema,
-  recoveryCode: recoveryCodeSchema,
-  password: z.string().min(10).max(128),
-});
-
-const RECOVERY_CODE_COUNT = 10;
-function makeRecoveryCodes(): string[] {
-  return Array.from({ length: RECOVERY_CODE_COUNT }, () =>
-    randomBytes(12).toString("hex").toUpperCase().match(/.{1,4}/g)!.join("-"),
-  );
-}
-
-function hashRecoveryCode(code: string): string {
-  return createHash("sha256").update(code.replace(/-/g, "").toUpperCase()).digest("hex");
-}
-
 // Modest per-instance limits reduce password guessing; do not treat these as a
 // substitute for an edge/WAF rate limit on public production deployments.
 const authAttempts = new Map<string, { count: number; resetAt: number }>();
@@ -94,12 +73,11 @@ export const appRouter = router({
       }
       checkAuthRateLimit(ctx.req.ip || "unknown", input.username);
       const passwordHash = await hashPassword(input.password);
-      const recoveryCodes = makeRecoveryCodes();
       try {
-        const user = await db.createUsernameUser(input.username, input.name, passwordHash, recoveryCodes.map(hashRecoveryCode));
+        const user = await db.createUsernameUser(input.username, input.name, passwordHash);
         const token = await createSessionToken(user);
         setSessionCookie(ctx, token);
-        return { user: publicUser(user), recoveryCodes };
+        return publicUser(user);
       } catch (error) {
         if ((error as { code?: string })?.code === "ER_DUP_ENTRY") {
           throw new TRPCError({ code: "CONFLICT", message: "اسم المستخدم مستخدم بالفعل. اختر اسمًا آخر." });
@@ -120,16 +98,6 @@ export const appRouter = router({
       const token = await createSessionToken(refreshed);
       setSessionCookie(ctx, token);
       return publicUser(refreshed);
-    }),
-    recoverWithCode: publicProcedure.input(recoveryInput).mutation(async ({ ctx, input }) => {
-      ensureAuthReady();
-      checkAuthRateLimit(ctx.req.ip || "unknown", `recovery:${input.username}`);
-      const passwordHash = await hashPassword(input.password);
-      const recovered = await db.recoverUsernamePassword(input.username, hashRecoveryCode(input.recoveryCode), passwordHash);
-      if (!recovered) {
-        throw new TRPCError({ code: "BAD_REQUEST", message: "اسم المستخدم أو رمز الاستعادة غير صحيح، أو أن الرمز استُخدم من قبل." });
-      }
-      return { success: true } as const;
     }),
     logout: publicProcedure.mutation(({ ctx }) => {
       const cookieOptions = getSessionCookieOptions(ctx.req);

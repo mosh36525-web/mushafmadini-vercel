@@ -51,7 +51,7 @@ export const authTokens = mysqlTable("auth_tokens", {
 export type AuthToken = typeof authTokens.$inferSelect;
 export type InsertAuthToken = typeof authTokens.$inferInsert;
 
-/** One-time recovery codes. Only a SHA-256 hash is stored; plaintext is returned once at signup. */
+/** Legacy table retained for non-destructive migrations; no recovery codes are issued or accepted. */
 export const recoveryCodes = mysqlTable("recovery_codes", {
   id: int("id").autoincrement().primaryKey(),
   userId: int("userId").notNull().references(() => users.id, { onDelete: "cascade" }),

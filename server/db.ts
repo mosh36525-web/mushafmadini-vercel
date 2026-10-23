@@ -1,6 +1,6 @@
 import { and, eq, sql } from "drizzle-orm";
 import { drizzle } from "drizzle-orm/mysql2";
-import { recoveryCodes, userData, users } from "../drizzle/schema.js";
+import { userData, users } from "../drizzle/schema.js";
 import { userDataMapSchema, type UserDataMap } from "../shared/userData.js";
 import { createPool } from "mysql2/promise";
 import { mysqlConfig } from "./mysqlConfig.js";
@@ -30,61 +30,24 @@ export async function getUserByUsername(username: string) {
   return rows[0];
 }
 
-/** Create a username account and its recovery-code hashes atomically. */
-export async function createUsernameUser(
-  username: string,
-  name: string,
-  passwordHash: string,
-  recoveryCodeHashes: string[],
-) {
+/** Create a username account without email or external recovery credentials. */
+export async function createUsernameUser(username: string, name: string, passwordHash: string) {
   const db = await getDb();
   if (!db) throw new Error("Database is not available");
-  return db.transaction(async tx => {
-    await tx.insert(users).values({
-      openId: null,
-      email: null,
-      username,
-      name,
-      passwordHash,
-      emailVerified: false,
-      loginMethod: "username",
-      lastSignedIn: new Date(),
-    });
-    const rows = await tx.select().from(users).where(eq(users.username, username)).limit(1);
-    const user = rows[0];
-    if (!user) throw new Error("Failed to load inserted user");
-    await tx.insert(recoveryCodes).values(recoveryCodeHashes.map(codeHash => ({ userId: user.id, codeHash })));
-    return user;
+  await db.insert(users).values({
+    openId: null,
+    email: null,
+    username,
+    name,
+    passwordHash,
+    emailVerified: false,
+    loginMethod: "username",
+    lastSignedIn: new Date(),
   });
-}
-
-/** Atomically consume one recovery code, replace the password, and revoke old sessions. */
-export async function recoverUsernamePassword(username: string, codeHash: string, passwordHash: string): Promise<boolean> {
-  const db = await getDb();
-  if (!db) throw new Error("Database is not available");
-  return db.transaction(async tx => {
-    const rows = await tx.select({ id: users.id }).from(users).where(eq(users.username, username)).limit(1);
-    const user = rows[0];
-    if (!user) return false;
-    const codes = await tx.select({ id: recoveryCodes.id }).from(recoveryCodes).where(and(
-      eq(recoveryCodes.userId, user.id),
-      eq(recoveryCodes.codeHash, codeHash),
-      eq(recoveryCodes.used, false),
-    )).limit(1);
-    const code = codes[0];
-    if (!code) return false;
-    const consumed = await tx.update(recoveryCodes).set({ used: true }).where(and(
-      eq(recoveryCodes.id, code.id),
-      eq(recoveryCodes.used, false),
-    ));
-    const affectedRows = Number((consumed as unknown as [{ affectedRows?: number }])[0]?.affectedRows ?? 0);
-    if (affectedRows !== 1) return false;
-    await tx.update(users).set({
-      passwordHash,
-      sessionVersion: sql`${users.sessionVersion} + 1`,
-    }).where(eq(users.id, user.id));
-    return true;
-  });
+  const rows = await db.select().from(users).where(eq(users.username, username)).limit(1);
+  const user = rows[0];
+  if (!user) throw new Error("Failed to load inserted user");
+  return user;
 }
 
 export async function markUserSignedIn(id: number) {

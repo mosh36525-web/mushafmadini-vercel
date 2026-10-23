@@ -36,6 +36,13 @@
       "when": 1792778362372,
       "tag": "0004_username_recovery_codes",
       "breakpoints": true
+    },
+    {
+      "idx": 5,
+      "version": "5",
+      "when": 1792780315579,
+      "tag": "0005_disable_legacy_recovery_codes",
+      "breakpoints": true
     }
   ]
 }

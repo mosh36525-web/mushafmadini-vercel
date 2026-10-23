@@ -14,7 +14,7 @@ export function useAuth() {
     onSuccess: user => utils.auth.me.setData(undefined, user),
   });
   const registerMutation = trpc.auth.register.useMutation({
-    onSuccess: result => utils.auth.me.setData(undefined, result.user),
+    onSuccess: user => utils.auth.me.setData(undefined, user),
   });
   const logoutMutation = trpc.auth.logout.useMutation();
 
