@@ -216,6 +216,7 @@ export default function Home() {
   const [duration, setDuration] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
   const [playbackRate, setPlaybackRate] = useState(1);
+  const [isSurahListOpen, setIsSurahListOpen] = useState(true);
   const [position, setPosition] = usePersistentState("madini-position", {
     surahNumber: 1,
     verse: 1,
@@ -234,6 +235,15 @@ export default function Home() {
     setProgress(0);
     setCurrentTime(0);
     setDuration(0);
+    if (window.matchMedia("(max-width: 800px)").matches) {
+      setIsSurahListOpen(false);
+      window.requestAnimationFrame(() =>
+        mushafReaderRef.current?.scrollIntoView({
+          behavior: "smooth",
+          block: "start",
+        })
+      );
+    }
   };
   const {
     quran,
@@ -318,6 +328,7 @@ export default function Home() {
   const completion = Math.round((activeVerse / selectedSurah.ayahs) * 100);
   const [toast, setToast] = useState("");
   const audioRef = useRef<HTMLAudioElement>(null);
+  const mushafReaderRef = useRef<HTMLElement | null>(null);
   const quranSearchRef = useRef<HTMLInputElement>(null);
   const notifiedPrayers = useRef(new Set<number>());
 
@@ -1034,47 +1045,61 @@ export default function Home() {
               </div>
             </section>
             <div className="quran-layout">
-              <aside className="surah-panel">
+              <aside className={`surah-panel ${isSurahListOpen ? "surah-panel-open" : "surah-panel-collapsed"}`}>
                 <div className="surah-panel-head">
                   <div>
                     <span className="eyebrow">السور</span>
                     <strong>فهرس القرآن</strong>
                   </div>
-                  <span
-                    className="icon-button subtle"
-                    title="فهرس السور الـ١١٤"
+                  <button
+                    type="button"
+                    className="surah-index-toggle icon-button subtle"
+                    title={isSurahListOpen ? "طي فهرس السور" : "عرض فهرس السور"}
+                    aria-label={isSurahListOpen ? "طي فهرس السور" : "عرض أسماء السور"}
+                    aria-expanded={isSurahListOpen}
+                    aria-controls="surah-index-list"
+                    onClick={() => setIsSurahListOpen(open => !open)}
                   >
                     <ListMusic size={17} />
-                  </span>
+                    <span className="surah-index-toggle-label">
+                      {isSurahListOpen ? "طي الفهرس" : "عرض السور"}
+                    </span>
+                  </button>
                 </div>
-                <label className="search-field">
-                  <Search size={16} />
-                  <input
-                    ref={quranSearchRef}
-                    value={search}
-                    onChange={event => setSearch(event.target.value)}
-                    placeholder="ابحث عن سورة"
-                    aria-label="البحث عن سورة أو رقمها"
-                  />
-                </label>
-                <div className="surah-list">
-                  {filteredSurahs.map(surah => (
-                    <button
-                      key={surah.number}
-                      className={`surah-row ${selectedSurah.number === surah.number ? "active" : ""}`}
-                      onClick={() => setSelectedSurah(surah)}
-                    >
-                      <span className="surah-number">{surah.number}</span>
-                      <span>
-                        <strong>{surah.name}</strong>
-                        <small>{surah.english}</small>
-                      </span>
-                      <em>{surah.ayahs}</em>
-                    </button>
-                  ))}
+                <div
+                  id="surah-index-list"
+                  className="surah-index-content"
+                  hidden={!isSurahListOpen}
+                >
+                  <label className="search-field">
+                    <Search size={16} />
+                    <input
+                      ref={quranSearchRef}
+                      value={search}
+                      onChange={event => setSearch(event.target.value)}
+                      placeholder="ابحث عن سورة"
+                      aria-label="البحث عن سورة أو رقمها"
+                    />
+                  </label>
+                  <div className="surah-list">
+                    {filteredSurahs.map(surah => (
+                      <button
+                        key={surah.number}
+                        className={`surah-row ${selectedSurah.number === surah.number ? "active" : ""}`}
+                        onClick={() => setSelectedSurah(surah)}
+                      >
+                        <span className="surah-number">{surah.number}</span>
+                        <span>
+                          <strong>{surah.name}</strong>
+                          <small>{surah.english}</small>
+                        </span>
+                        <em>{surah.ayahs}</em>
+                      </button>
+                    ))}
+                  </div>
                 </div>
               </aside>
-              <article className="mushaf-reader">
+              <article className="mushaf-reader" ref={mushafReaderRef}>
                 <div className="reader-topline">
                   <span>الجزء {ayahMetadata?.juz ?? "—"}</span>
                   <span>ربع الحزب {ayahMetadata?.hizbQuarter ?? "—"}</span>

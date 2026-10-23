@@ -144,6 +144,61 @@ button:focus-visible, input:focus-visible, select:focus-visible { outline: 2px s
   white-space: nowrap;
   transition: background 0.2s ease, border-color 0.2s ease, transform 0.2s ease;
 }
+.surah-index-toggle-label { display: none; }
+
+@media (max-width: 800px) {
+  .app-shell .mobile-tabs {
+    display: flex;
+    flex-wrap: nowrap;
+    justify-content: flex-start;
+    gap: 2px;
+    overflow-x: auto;
+    overflow-y: hidden;
+    overscroll-behavior-x: contain;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(214, 168, 79, 0.45) transparent;
+    padding-inline: 8px;
+    touch-action: pan-x;
+  }
+  .app-shell .mobile-tabs::-webkit-scrollbar { height: 3px; }
+  .app-shell .mobile-tabs::-webkit-scrollbar-thumb {
+    border-radius: 4px;
+    background: rgba(214, 168, 79, 0.45);
+  }
+  .app-shell .mobile-tabs button {
+    min-width: 62px;
+    min-height: 58px;
+    flex: 0 0 62px;
+    padding: 8px 3px 7px;
+  }
+  .app-shell .surah-list {
+    max-height: min(230px, 32vh);
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    overscroll-behavior: contain;
+  }
+  .surah-index-toggle {
+    width: auto;
+    min-width: 37px;
+    padding-inline: 9px;
+    gap: 6px;
+  }
+  .surah-index-toggle-label { display: inline; font-size: 10px; white-space: nowrap; }
+  .surah-panel-collapsed { min-height: 0; }
+  .player-bar {
+    min-height: 0;
+    padding: 6px 10px calc(6px + env(safe-area-inset-bottom));
+    gap: 5px 9px;
+  }
+  .player-details { min-height: 30px; }
+  .player-details .mini-cover { width: 30px; height: 30px; }
+  .player-center { gap: 3px; }
+  .player-controls { gap: 13px; }
+  .player-controls .player-play { width: 27px; height: 27px; }
+  .player-progress { gap: 4px; }
+  .player-progress span { font-size: 7px; }
+  .main-content { padding-bottom: calc(112px + env(safe-area-inset-bottom)); }
+}
+
 .topbar-home-button:hover {
   background: rgba(214, 168, 79, 0.2);
   border-color: rgba(214, 168, 79, 0.5);
