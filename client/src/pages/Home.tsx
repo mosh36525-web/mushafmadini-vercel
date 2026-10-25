@@ -53,6 +53,7 @@ import PrayerPage from "@/components/features/PrayerPage";
 import DuaPage from "@/components/features/DuaPage";
 import TasbihPage from "@/components/features/TasbihPage";
 import AccountPage from "@/components/features/AccountPage";
+import RecitationCoach from "@/components/RecitationCoach";
 import { trpc } from "@/lib/trpc";
 import { normalizeArabic } from "@/lib/arabic";
 import { useAccountSync } from "@/hooks/useAccountSync";
@@ -1607,6 +1608,11 @@ export default function Home() {
               </section>
               <aside className="test-card">
                 <div className="test-card-glow" />
+                <div className="review-3d-book" aria-hidden="true">
+                  <span className="review-book-page review-book-left" />
+                  <span className="review-book-page review-book-right" />
+                  <span className="review-book-spine" />
+                </div>
                 <div className="test-card-head">
                   <span className="quick-icon sage">
                     <Headphones size={19} />
@@ -1649,8 +1655,7 @@ export default function Home() {
                       : ""}
                   </span>
                   <p className="source-note">
-                    مراجعة ذاتية؛ لا يسجّل التطبيق صوتك ولا يقيّم صحة التسميع
-                    آليًا.
+                    أخفِ النص وسمّع من حفظك، أو أظهره بعد المحاولة للمراجعة.
                   </p>
                   <h2>
                     الآية {activeVerse} من
@@ -1667,6 +1672,11 @@ export default function Home() {
                       </>
                     )}
                   </div>
+                  <RecitationCoach
+                    key={`${selectedSurah.number}-${activeVerse}`}
+                    referenceText={verses[activeVerse - 1] ?? ""}
+                    verseNumber={activeVerse}
+                  />
                   <div className="test-actions">
                     <button
                       className="outline-button"

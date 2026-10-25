@@ -290,3 +290,344 @@
     display: none;
   }
 }
+
+
+/* Recitation practice: clear word-level feedback and a quiet 3D Mushaf ornament. */
+.test-card {
+  isolation: isolate;
+  transform-style: preserve-3d;
+  transition: transform .28s ease, box-shadow .28s ease, border-color .28s ease;
+}
+.test-card-glow,
+.review-3d-book {
+  z-index: 0;
+  pointer-events: none;
+}
+.test-card > :not(.test-card-glow):not(.review-3d-book) {
+  position: relative;
+  z-index: 1;
+}
+.review-3d-book {
+  position: absolute;
+  top: 24px;
+  left: 23px;
+  width: 87px;
+  height: 63px;
+  perspective: 460px;
+  transform-style: preserve-3d;
+  opacity: .62;
+  animation: review-book-float 5s ease-in-out infinite;
+}
+.review-book-page {
+  position: absolute;
+  top: 6px;
+  width: 37px;
+  height: 47px;
+  border: 1px solid rgba(232, 197, 120, .58);
+  background:
+    linear-gradient(90deg, transparent 0 24%, rgba(238, 211, 153, .16) 25% 27%, transparent 28%),
+    linear-gradient(145deg, rgba(246, 226, 177, .22), rgba(95, 76, 48, .45));
+  box-shadow: 0 8px 13px rgba(0, 0, 0, .23), inset 0 0 9px rgba(244, 221, 171, .1);
+}
+.review-book-left {
+  left: 7px;
+  border-radius: 7px 2px 4px 8px;
+  transform: rotateY(-31deg) rotateZ(-5deg) translateZ(4px);
+  transform-origin: right center;
+}
+.review-book-right {
+  right: 7px;
+  border-radius: 2px 7px 8px 4px;
+  transform: rotateY(31deg) rotateZ(5deg) translateZ(3px);
+  transform-origin: left center;
+}
+.review-book-spine {
+  position: absolute;
+  z-index: 2;
+  top: 8px;
+  left: 41px;
+  width: 5px;
+  height: 43px;
+  border-radius: 50%;
+  background: linear-gradient(90deg, #806239, #f0cf85 48%, #7a5b32);
+  transform: rotateX(8deg) translateZ(6px);
+  box-shadow: 0 3px 8px rgba(0, 0, 0, .25);
+}
+@keyframes review-book-float {
+  0%, 100% { transform: translateY(0) rotateY(-3deg); }
+  50% { transform: translateY(-4px) rotateY(3deg); }
+}
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .test-card:hover {
+    transform: perspective(900px) rotateX(1deg) rotateY(-1deg) translateY(-3px);
+    border-color: rgba(214, 168, 79, .3);
+    box-shadow: 0 21px 42px rgba(0, 0, 0, .19);
+  }
+  .review-task {
+    transition: transform .2s ease, border-color .2s ease, box-shadow .2s ease;
+  }
+  .review-task:hover {
+    transform: perspective(900px) rotateX(.6deg) translateY(-2px);
+    border-color: rgba(214, 168, 79, .24);
+    box-shadow: 0 11px 24px rgba(0, 0, 0, .1);
+  }
+}
+
+.recitation-coach {
+  margin: 18px 0 17px;
+  padding: 17px;
+  border: 1px solid rgba(136, 170, 143, .25);
+  border-radius: 16px;
+  background: linear-gradient(145deg, rgba(34, 53, 49, .72), rgba(25, 39, 43, .84));
+  text-align: right;
+}
+.recitation-coach-heading {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.recitation-coach-heading > div {
+  display: grid;
+  gap: 3px;
+}
+.recitation-coach-heading > div strong {
+  color: var(--text);
+  font-size: 13px;
+}
+.recitation-coach-heading > div small {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.recitation-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-inline-start: auto;
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.recitation-status i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--muted-2);
+}
+.recitation-status.is-recording {
+  color: #e69c8f;
+}
+.recitation-status.is-recording i {
+  background: #d77969;
+  box-shadow: 0 0 0 4px rgba(215, 121, 105, .13);
+  animation: recitation-pulse 1.25s ease-in-out infinite;
+}
+@keyframes recitation-pulse {
+  50% { box-shadow: 0 0 0 7px rgba(215, 121, 105, .04); }
+}
+.recitation-coach-note,
+.recitation-privacy {
+  color: var(--muted);
+  font-size: 11px;
+  line-height: 1.8;
+}
+.recitation-coach-note {
+  margin: 12px 0;
+}
+.recitation-controls {
+  display: flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.recitation-record-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 8px;
+  min-height: 40px;
+  padding: 0 14px;
+  border: 1px solid rgba(214, 168, 79, .25);
+  border-radius: 10px;
+  background: rgba(214, 168, 79, .13);
+  color: var(--gold-light);
+  font-size: 11px;
+  font-weight: 650;
+  transition: .2s ease;
+}
+.recitation-record-button:hover:not(:disabled) {
+  background: rgba(214, 168, 79, .22);
+  transform: translateY(-1px);
+}
+.recitation-record-button.recording {
+  border-color: rgba(215, 121, 105, .4);
+  background: rgba(215, 121, 105, .13);
+  color: #e9a397;
+}
+.recitation-record-button:disabled,
+.recitation-analyze-button:disabled {
+  opacity: .48;
+  cursor: not-allowed;
+}
+.recitation-analyze-button {
+  min-height: 40px;
+  padding: 0 12px;
+  font-size: 11px;
+}
+.recitation-retry-button {
+  width: 38px;
+  height: 38px;
+  border: 1px solid var(--line);
+}
+.recitation-error {
+  margin: 11px 0 0;
+  color: #e7a094;
+  font-size: 11px;
+  line-height: 1.7;
+}
+.recitation-transcript {
+  margin-top: 13px;
+  padding: 11px 12px;
+  border: 1px solid var(--line);
+  border-radius: 11px;
+  background: rgba(0, 0, 0, .12);
+}
+.recitation-transcript > span {
+  color: var(--muted-2);
+  font-size: 10px;
+}
+.recitation-transcript p {
+  margin: 6px 0 0;
+  color: var(--text);
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-size: 17px;
+  line-height: 1.9;
+}
+.recitation-result {
+  margin-top: 13px;
+  padding-top: 13px;
+  border-top: 1px solid var(--line);
+}
+.recitation-score-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  margin-bottom: 12px;
+}
+.recitation-score-row > div {
+  display: grid;
+  gap: 2px;
+  flex: 0 0 auto;
+}
+.recitation-score-row strong {
+  color: var(--gold-light);
+  font-family: Georgia, serif;
+  font-size: 26px;
+  font-weight: 500;
+}
+.recitation-score-row span,
+.recitation-score-row p {
+  color: var(--muted);
+  font-size: 10px;
+}
+.recitation-score-row p {
+  margin: 0;
+  line-height: 1.7;
+}
+.recitation-word-list {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 7px;
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  background: rgba(0, 0, 0, .1);
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-size: 17px;
+  line-height: 1.8;
+}
+.recitation-word {
+  display: inline-flex;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 4px;
+  padding: 0 5px;
+  border-bottom: 2px solid transparent;
+  border-radius: 5px;
+}
+.recitation-word.correct {
+  color: #a8d3ae;
+}
+.recitation-word.different,
+.recitation-word.missing {
+  border-color: rgba(224, 129, 111, .65);
+  background: rgba(224, 129, 111, .11);
+  color: #f0b0a4;
+}
+.recitation-word.extra {
+  border-color: rgba(226, 187, 105, .6);
+  background: rgba(226, 187, 105, .1);
+  color: #efcf8f;
+}
+.recitation-word small {
+  width: 100%;
+  color: currentColor;
+  opacity: .78;
+  font-family: "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  font-size: 9px;
+  line-height: 1.35;
+}
+.recitation-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  margin-top: 9px;
+}
+.recitation-legend span {
+  font-size: 9px;
+}
+.recitation-legend .correct { color: #a8d3ae; }
+.recitation-legend .different,
+.recitation-legend .missing { color: #f0b0a4; }
+.recitation-legend .extra { color: #efcf8f; }
+.recitation-privacy {
+  margin: 12px 0 0;
+  color: var(--muted-2);
+  font-size: 9px;
+}
+:root:not(.dark) .recitation-coach {
+  border-color: rgba(74, 112, 79, .22);
+  background: linear-gradient(145deg, rgba(232, 241, 229, .9), rgba(246, 240, 229, .94));
+}
+:root:not(.dark) .recitation-transcript,
+:root:not(.dark) .recitation-word-list {
+  background: rgba(74, 64, 40, .035);
+}
+:root:not(.dark) .review-book-page {
+  border-color: rgba(139, 99, 31, .48);
+  background:
+    linear-gradient(90deg, transparent 0 24%, rgba(139, 99, 31, .14) 25% 27%, transparent 28%),
+    linear-gradient(145deg, rgba(255, 249, 231, .95), rgba(226, 208, 167, .72));
+  box-shadow: 0 8px 13px rgba(73, 56, 26, .15), inset 0 0 9px rgba(139, 99, 31, .08);
+}
+:root:not(.dark) .review-book-spine {
+  background: linear-gradient(90deg, #97743f, #f0d797 48%, #896532);
+}
+@media (max-width: 600px) {
+  .review-3d-book {
+    top: 20px;
+    left: 15px;
+    transform: scale(.8);
+    transform-origin: top left;
+    opacity: .42;
+  }
+  .recitation-coach {
+    padding: 13px;
+  }
+  .recitation-score-row {
+    align-items: flex-start;
+  }
+  .recitation-score-row p {
+    max-width: 60%;
+  }
+}
