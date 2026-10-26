@@ -10,6 +10,7 @@ import {
   ChevronDown,
   ChevronLeft,
   ChevronRight,
+  ChevronUp,
   Circle,
   Clock3,
   Compass,
@@ -286,6 +287,9 @@ export default function Home() {
   const [fontSize, setFontSize] = usePersistentState("madini-font-size", 29);
   const today = localDateKey();
   const [isTestMode, setIsTestMode] = useState(false);
+  const [isReviewCardExpanded, setIsReviewCardExpanded] = useState(true);
+  const reviewCardSwipeStart = useRef<number | null>(null);
+  const reviewCardSwipeHandled = useRef(false);
   const [revealed, setRevealed] = useState(false);
   const [activeReviewTaskId, setActiveReviewTaskId] = useState<string | null>(null);
   const [reviewSessionEnd, setReviewSessionEnd] = useState<number | null>(null);
@@ -620,6 +624,30 @@ export default function Home() {
     setToast(next ? "تم حفظ موضع القراءة" : "أزيلت العلامة المرجعية");
   }
 
+  function handleReviewCardPointerDown(event: React.PointerEvent<HTMLButtonElement>) {
+    reviewCardSwipeStart.current = event.clientY;
+    reviewCardSwipeHandled.current = false;
+    event.currentTarget.setPointerCapture(event.pointerId);
+  }
+
+  function handleReviewCardPointerUp(event: React.PointerEvent<HTMLButtonElement>) {
+    const startY = reviewCardSwipeStart.current;
+    reviewCardSwipeStart.current = null;
+    if (startY === null) return;
+    const verticalSwipe = startY - event.clientY;
+    if (Math.abs(verticalSwipe) < 34) return;
+    reviewCardSwipeHandled.current = true;
+    setIsReviewCardExpanded(verticalSwipe > 0);
+  }
+
+  function toggleReviewCardExpanded() {
+    if (reviewCardSwipeHandled.current) {
+      reviewCardSwipeHandled.current = false;
+      return;
+    }
+    setIsReviewCardExpanded(expanded => !expanded);
+  }
+
   function startReviewTask(task: ReviewPlanItem) {
     const surah = surahs.find(item => item.number === task.surahNumber);
     if (!surah) return;
@@ -627,6 +655,7 @@ export default function Home() {
     setPosition({ surahNumber: surah.number, verse: task.fromVerse });
     setActiveReviewTaskId(task.id);
     setReviewSessionEnd(task.toVerse);
+    setIsReviewCardExpanded(true);
     setIsTestMode(true);
     setRevealed(false);
   }
@@ -1639,72 +1668,98 @@ export default function Home() {
               </aside>
             </div>
             {isTestMode && (
-              <div className="test-modal">
-                <div className="test-modal-card">
-                  <button
-                    className="close-button"
-                    aria-label="إغلاق التسميع"
-                    onClick={closeReviewSession}
-                  >
-                    <X size={18} />
-                  </button>
-                  <span className="eyebrow">
-                    تسميع {selectedSurah.name}
-                    {activeReviewTask
-                      ? ` · الآيات ${activeReviewTask.fromVerse}–${activeReviewTask.toVerse}`
-                      : ""}
-                  </span>
-                  <p className="source-note">
-                    أخفِ النص وسمّع من حفظك، أو أظهره بعد المحاولة للمراجعة.
-                  </p>
-                  <h2>
-                    الآية {activeVerse} من
-                    {" "}
-                    {reviewSessionEnd ?? selectedSurah.ayahs}
-                  </h2>
-                  <div className={`hidden-verse ${revealed ? "revealed" : ""}`}>
-                    {revealed ? (
-                      verses[activeVerse - 1] || "جارٍ تحميل الآية..."
-                    ) : (
-                      <>
-                        <LockKeyhole size={24} />
-                        <span>النص مخفي — سمّع من حفظك</span>
-                      </>
-                    )}
+              <div
+                className={`test-modal review-session-modal ${isReviewCardExpanded ? "is-expanded" : "is-compact"}`}
+              >
+                <div
+                  className={`test-modal-card review-session-card ${isReviewCardExpanded ? "is-expanded" : "is-compact"}`}
+                >
+                  <div className="review-session-top">
+                    <div className="review-session-title">
+                      <span className="eyebrow">
+                        تسميع {selectedSurah.name}
+                        {activeReviewTask
+                          ? ` · الآيات ${activeReviewTask.fromVerse}–${activeReviewTask.toVerse}`
+                          : ""}
+                      </span>
+                      <h2>
+                        الآية {activeVerse} من {reviewSessionEnd ?? selectedSurah.ayahs}
+                      </h2>
+                    </div>
+                    <div className="review-session-window-actions">
+                      <button
+                        type="button"
+                        className="review-session-toggle"
+                        aria-expanded={isReviewCardExpanded}
+                        aria-controls="review-session-body"
+                        aria-label={isReviewCardExpanded ? "تصغير بطاقة المراجعة" : "تكبير بطاقة المراجعة"}
+                        title="اضغط أو اسحب لأعلى للتكبير ولأسفل للتصغير"
+                        onPointerDown={handleReviewCardPointerDown}
+                        onPointerUp={handleReviewCardPointerUp}
+                        onPointerCancel={() => { reviewCardSwipeStart.current = null; }}
+                        onClick={toggleReviewCardExpanded}
+                      >
+                        {isReviewCardExpanded ? <ChevronDown size={18} /> : <ChevronUp size={18} />}
+                        <span>{isReviewCardExpanded ? "تصغير" : "تكبير"}</span>
+                      </button>
+                      <button
+                        type="button"
+                        className="review-session-close"
+                        aria-label="إغلاق التسميع"
+                        onClick={closeReviewSession}
+                      >
+                        <X size={18} />
+                      </button>
+                    </div>
                   </div>
-                  <RecitationCoach
-                    referenceText={verses[activeVerse - 1] ?? ""}
-                    verseNumber={activeVerse}
-                  />
-                  <div className="test-actions">
-                    <button
-                      className="outline-button"
-                      onClick={() => setRevealed(current => !current)}
-                    >
-                      {revealed ? <EyeOff size={16} /> : <Eye size={16} />}{" "}
-                      {revealed ? "إخفاء النص" : "كشف النص"}
-                    </button>
-                    <button
-                      className="outline-button"
-                      disabled={activeVerse >= (reviewSessionEnd ?? selectedSurah.ayahs)}
-                      onClick={() => {
-                        setActiveVerse(
-                          Math.min(
-                            activeVerse + 1,
-                            reviewSessionEnd ?? selectedSurah.ayahs
-                          )
-                        );
-                        setRevealed(false);
-                      }}
-                    >
-                      الآية التالية
-                    </button>
-                    <button
-                      className="primary-button"
-                      onClick={finishReviewSession}
-                    >
-                      تم التسميع <Check size={16} />
-                    </button>
+                  <div className="review-session-body" id="review-session-body">
+                    <p className="source-note">
+                      أخفِ النص وسمّع من حفظك، أو أظهره بعد المحاولة للمراجعة.
+                    </p>
+                    <div className={`hidden-verse ${revealed ? "revealed" : ""}`}>
+                      {revealed ? (
+                        verses[activeVerse - 1] || "جارٍ تحميل الآية..."
+                      ) : (
+                        <>
+                          <LockKeyhole size={24} />
+                          <span>النص مخفي — سمّع من حفظك</span>
+                        </>
+                      )}
+                    </div>
+                    <RecitationCoach
+                      referenceText={verses[activeVerse - 1] ?? ""}
+                      verseNumber={activeVerse}
+                    />
+                    <div className="test-actions">
+                      <button
+                        className="outline-button"
+                        onClick={() => setRevealed(current => !current)}
+                      >
+                        {revealed ? <EyeOff size={16} /> : <Eye size={16} />} {" "}
+                        {revealed ? "إخفاء النص" : "كشف النص"}
+                      </button>
+                      <button
+                        className="outline-button"
+                        disabled={activeVerse >= (reviewSessionEnd ?? selectedSurah.ayahs)}
+                        onClick={() => {
+                          setActiveVerse(
+                            Math.min(
+                              activeVerse + 1,
+                              reviewSessionEnd ?? selectedSurah.ayahs
+                            )
+                          );
+                          setRevealed(false);
+                        }}
+                      >
+                        الآية التالية
+                      </button>
+                      <button
+                        className="primary-button"
+                        onClick={finishReviewSession}
+                      >
+                        تم التسميع <Check size={16} />
+                      </button>
+                    </div>
                   </div>
                 </div>
               </div>

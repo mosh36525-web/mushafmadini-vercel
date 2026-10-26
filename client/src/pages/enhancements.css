@@ -1036,3 +1036,133 @@
 @media (max-width: 640px) {
   .recitation-preload-notice { inset-inline: 12px; bottom: 90px; width: auto; padding: 11px; }
 }
+
+
+/* Review session sheet: viewport-bounded, internally scrollable, and collapsible. */
+.review-session-modal {
+  place-items: center;
+  overflow: hidden;
+  padding: max(12px, env(safe-area-inset-top)) 14px max(12px, env(safe-area-inset-bottom));
+}
+.review-session-modal.is-compact {
+  align-items: end;
+  background: rgba(5, 11, 15, .42);
+}
+.review-session-card {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  width: min(760px, 100%);
+  height: min(90dvh, 900px);
+  max-height: calc(100dvh - 24px);
+  min-height: 0;
+  overflow: hidden;
+  padding: 18px;
+  text-align: right;
+}
+.review-session-card.is-compact {
+  height: auto;
+  max-height: none;
+  min-height: 0;
+  margin-bottom: max(8px, env(safe-area-inset-bottom));
+  overflow: hidden;
+}
+.review-session-top {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding-bottom: 11px;
+  border-bottom: 1px solid var(--line);
+}
+.review-session-card.is-compact .review-session-top {
+  padding-bottom: 0;
+  border-bottom: 0;
+}
+.review-session-title {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+  text-align: right;
+}
+.review-session-title .eyebrow { margin: 0; }
+.review-session-title h2 {
+  margin: 0;
+  color: #f3ede3;
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-size: clamp(17px, 2.6vw, 22px);
+  line-height: 1.45;
+}
+.review-session-window-actions {
+  display: flex;
+  flex: 0 0 auto;
+  align-items: center;
+  gap: 7px;
+}
+.review-session-toggle,
+.review-session-close {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 38px;
+  border: 1px solid var(--line-strong);
+  border-radius: 10px;
+  background: rgba(255, 255, 255, .045);
+  color: var(--text);
+  cursor: pointer;
+  transition: background .18s ease, transform .18s ease;
+}
+.review-session-toggle { padding: 0 10px; font-size: 11px; white-space: nowrap; touch-action: none; user-select: none; }
+.review-session-close { width: 38px; padding: 0; }
+.review-session-toggle:hover,
+.review-session-close:hover { background: rgba(214, 168, 79, .12); transform: translateY(-1px); }
+.review-session-toggle:focus-visible,
+.review-session-close:focus-visible { outline: 2px solid var(--gold); outline-offset: 2px; }
+.review-session-body {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  padding: 0 2px 3px;
+  scrollbar-gutter: stable;
+}
+.review-session-card.is-compact .review-session-body { display: none; }
+.review-session-body > .source-note { margin: 4px 0 12px; }
+.review-session-body > .recitation-coach { margin: 12px 0; }
+.review-session-body > .test-actions { margin: 13px 0 3px; }
+:root:not(.dark) .review-session-title h2 { color: var(--text); }
+:root:not(.dark) .review-session-toggle,
+:root:not(.dark) .review-session-close { background: rgba(74, 64, 40, .04); }
+:root:not(.dark) .review-session-toggle:hover,
+:root:not(.dark) .review-session-close:hover { background: rgba(139, 99, 31, .1); }
+@media (max-width: 640px) {
+  .review-session-modal { align-items: end; padding: 0; }
+  .review-session-card {
+    width: 100%;
+    height: calc(100dvh - env(safe-area-inset-top));
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    gap: 9px;
+    padding: 14px 13px calc(12px + env(safe-area-inset-bottom));
+    border-radius: 20px 20px 0 0;
+  }
+  .review-session-card.is-compact {
+    height: auto;
+    max-height: calc(100dvh - env(safe-area-inset-top));
+    margin-bottom: 0;
+    padding-bottom: calc(13px + env(safe-area-inset-bottom));
+  }
+  .review-session-top { gap: 8px; padding-bottom: 9px; }
+  .review-session-toggle { min-height: 36px; padding: 0 8px; font-size: 10px; }
+  .review-session-close { width: 36px; min-height: 36px; }
+  .review-session-body > .source-note { font-size: 10px; }
+}
+@media (max-height: 620px) {
+  .review-session-card {
+    height: calc(100dvh - 16px);
+    max-height: calc(100dvh - 16px);
+    padding-top: 10px;
+    padding-bottom: 10px;
+  }
+}
