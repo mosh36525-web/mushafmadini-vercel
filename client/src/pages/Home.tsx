@@ -1665,6 +1665,9 @@ export default function Home() {
                 >
                   ابدأ المقطع التالي <ArrowLeft size={15} />
                 </button>
+                <a className="outline-button manual-review-launch-button" href="/manual-review">
+                  <BookOpen size={15} /> المراجعة اليدوية بدون AI
+                </a>
               </aside>
             </div>
             {isTestMode && (

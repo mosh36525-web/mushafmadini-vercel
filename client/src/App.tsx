@@ -7,6 +7,7 @@ import { Route, Switch } from "wouter";
 import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
+import ManualReviewPage from "./pages/ManualReview";
 import ResetPasswordPage from "./pages/ResetPassword";
 import { preloadRecitationModel } from "./lib/recitationModel";
 
@@ -16,6 +17,7 @@ function Router() {
       <Route path="/" component={Home} />
       <Route path="/mushaf" component={Home} />
       <Route path="/review" component={Home} />
+      <Route path="/manual-review" component={ManualReviewPage} />
       <Route path="/prayer" component={Home} />
       <Route path="/duas" component={Home} />
       <Route path="/tasbih" component={Home} />
@@ -29,7 +31,7 @@ function Router() {
 
 export default function App() {
   useEffect(() => {
-    preloadRecitationModel();
+    if (window.location.pathname !== "/manual-review") preloadRecitationModel();
   }, []);
 
   return (
