@@ -1673,7 +1673,6 @@ export default function Home() {
                     )}
                   </div>
                   <RecitationCoach
-                    key={`${selectedSurah.number}-${activeVerse}`}
                     referenceText={verses[activeVerse - 1] ?? ""}
                     verseNumber={activeVerse}
                   />

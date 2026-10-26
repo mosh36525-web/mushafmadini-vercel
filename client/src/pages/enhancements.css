@@ -631,3 +631,328 @@
     max-width: 60%;
   }
 }
+
+
+/* Premium, privacy-first local recitation studio. */
+.recitation-coach {
+  border-color: rgba(214, 168, 79, .25);
+  background:
+    radial-gradient(ellipse at 4% 0%, rgba(214, 168, 79, .12), transparent 36%),
+    linear-gradient(145deg, rgba(32, 51, 47, .93), rgba(23, 37, 42, .96));
+  box-shadow: 0 14px 38px rgba(0, 0, 0, .15), inset 0 1px 0 rgba(255, 255, 255, .035);
+}
+.recitation-local-emblem {
+  position: relative;
+  display: grid;
+  width: 42px;
+  height: 42px;
+  flex: 0 0 42px;
+  place-items: center;
+  border: 1px solid rgba(227, 191, 111, .4);
+  border-radius: 14px;
+  background: radial-gradient(circle at 32% 25%, rgba(241, 209, 142, .25), rgba(214, 168, 79, .08) 67%);
+  color: var(--gold-light);
+  box-shadow: 0 9px 19px rgba(0, 0, 0, .17), inset 0 1px 4px rgba(244, 221, 171, .13);
+  transform: perspective(320px) rotateY(-12deg) rotateX(7deg);
+}
+.recitation-local-emblem::after {
+  position: absolute;
+  inset: 4px;
+  border: 1px solid rgba(227, 191, 111, .17);
+  border-radius: 10px;
+  content: "";
+  transform: translateZ(5px);
+}
+.recitation-title-copy strong {
+  color: #f4eddc !important;
+  font-size: 14px !important;
+}
+.recitation-title-copy small {
+  font-size: 10px !important;
+}
+.recitation-status.is-ready {
+  color: #a9ceb0;
+}
+.recitation-status.is-ready i {
+  background: #8abd92;
+  box-shadow: 0 0 0 4px rgba(138, 189, 146, .1);
+}
+.recitation-local-banner {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin: 14px 0 12px;
+  padding: 10px 11px;
+  border: 1px solid rgba(136, 170, 143, .19);
+  border-radius: 11px;
+  background: rgba(136, 170, 143, .055);
+  color: #a9ceb0;
+}
+.recitation-local-banner svg {
+  flex: 0 0 auto;
+  margin-top: 2px;
+}
+.recitation-local-banner p {
+  margin: 0;
+  color: #b2beb1;
+  font-size: 10px;
+  line-height: 1.8;
+}
+.recitation-model-setup {
+  margin: 12px 0;
+  padding: 13px;
+  border: 1px solid rgba(214, 168, 79, .2);
+  border-radius: 13px;
+  background: linear-gradient(130deg, rgba(214, 168, 79, .075), rgba(255, 255, 255, .015));
+}
+.recitation-model-copy {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+.recitation-model-icon {
+  display: grid;
+  width: 32px;
+  height: 32px;
+  flex: 0 0 32px;
+  place-items: center;
+  border-radius: 10px;
+  background: rgba(214, 168, 79, .12);
+  color: var(--gold-light);
+}
+.recitation-model-copy > div {
+  display: grid;
+  min-width: 0;
+  gap: 3px;
+}
+.recitation-model-copy strong {
+  color: var(--text);
+  font-size: 11px;
+}
+.recitation-model-copy small {
+  overflow: hidden;
+  color: var(--muted-2);
+  font-size: 9px;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+.recitation-model-progress {
+  overflow: hidden;
+  height: 4px;
+  margin: 11px 0 9px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, .08);
+  direction: ltr;
+}
+.recitation-model-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, #88aa8f, #f0ca78);
+  box-shadow: 0 0 10px rgba(214, 168, 79, .35);
+  transition: width .22s ease;
+}
+.recitation-prepare-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 37px;
+  margin-top: 11px;
+  padding: 0 11px;
+  border: 1px solid rgba(214, 168, 79, .23);
+  border-radius: 9px;
+  background: rgba(214, 168, 79, .12);
+  color: var(--gold-light);
+  font-size: 10px;
+  font-weight: 650;
+  transition: background .18s ease, transform .18s ease;
+}
+.recitation-prepare-button:hover:not(:disabled) {
+  transform: translateY(-1px);
+  background: rgba(214, 168, 79, .2);
+}
+.recitation-prepare-button:disabled {
+  opacity: .75;
+  cursor: wait;
+}
+.recitation-spinner {
+  animation: recitation-spin 1s linear infinite;
+}
+@keyframes recitation-spin {
+  to { transform: rotate(360deg); }
+}
+.recitation-model-ready {
+  display: flex;
+  align-items: center;
+  gap: 7px;
+  margin: 11px 0;
+  color: #a9ceb0;
+  font-size: 10px;
+}
+.recitation-record-panel {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 72px;
+  padding: 10px 11px;
+  border: 1px solid var(--line);
+  border-radius: 13px;
+  background: linear-gradient(115deg, rgba(255, 255, 255, .035), rgba(0, 0, 0, .08));
+}
+.recitation-visualizer {
+  display: flex;
+  width: 55px;
+  height: 38px;
+  flex: 0 0 55px;
+  align-items: center;
+  justify-content: center;
+  gap: 2px;
+  padding: 2px;
+  direction: ltr;
+}
+.recitation-visualizer i {
+  width: 2px;
+  height: var(--bar-height);
+  min-height: 5px;
+  border-radius: 3px;
+  background: linear-gradient(180deg, rgba(240, 202, 120, .48), rgba(136, 170, 143, .62));
+  transform: scaleY(.34);
+  transform-origin: center;
+  transition: transform .2s ease, background .2s ease;
+}
+.recitation-visualizer.active i {
+  animation: recitation-wave .7s ease-in-out var(--bar-delay) infinite alternate;
+  background: linear-gradient(180deg, #f0ca78, #88aa8f);
+  box-shadow: 0 0 8px rgba(214, 168, 79, .18);
+}
+@keyframes recitation-wave {
+  from { transform: scaleY(.32); }
+  to { transform: scaleY(1); }
+}
+.recitation-record-info {
+  display: grid;
+  min-width: 0;
+  flex: 1;
+  gap: 4px;
+}
+.recitation-record-info strong {
+  color: var(--text);
+  font-size: 11px;
+}
+.recitation-record-info small {
+  color: var(--muted-2);
+  font-size: 9px;
+}
+.recitation-processing-icon {
+  flex: 0 0 auto;
+  color: var(--gold-light);
+}
+.recitation-record-button {
+  min-height: 39px;
+  flex: 0 0 auto;
+  padding-inline: 12px;
+  white-space: nowrap;
+}
+.recitation-record-button:disabled {
+  opacity: .43;
+  cursor: not-allowed;
+  transform: none;
+}
+.recitation-result .recitation-retry-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 7px;
+  min-height: 34px;
+  margin-top: 12px;
+  padding: 0 10px;
+  border: 1px solid var(--line);
+  border-radius: 9px;
+  background: rgba(255, 255, 255, .035);
+  color: var(--muted);
+  font-size: 10px;
+}
+.recitation-result .recitation-retry-button:hover {
+  border-color: var(--line-strong);
+  color: var(--gold-light);
+}
+:root:not(.dark) .recitation-coach {
+  border-color: rgba(139, 99, 31, .21);
+  background:
+    radial-gradient(ellipse at 4% 0%, rgba(214, 168, 79, .1), transparent 36%),
+    linear-gradient(145deg, rgba(255, 250, 240, .98), rgba(241, 234, 219, .98));
+}
+:root:not(.dark) .recitation-title-copy strong,
+:root:not(.dark) .recitation-model-copy strong,
+:root:not(.dark) .recitation-record-info strong {
+  color: #25372f !important;
+}
+:root:not(.dark) .recitation-local-banner p {
+  color: #556558;
+}
+:root:not(.dark) .recitation-record-panel {
+  background: linear-gradient(115deg, rgba(139, 99, 31, .04), rgba(74, 64, 40, .025));
+}
+@media (max-width: 520px) {
+  .recitation-record-panel {
+    flex-wrap: wrap;
+    gap: 8px;
+    padding: 10px;
+  }
+  .recitation-visualizer {
+    width: 45px;
+    flex-basis: 45px;
+  }
+  .recitation-record-info {
+    flex-basis: calc(100% - 65px);
+  }
+  .recitation-record-button {
+    width: 100%;
+    min-height: 42px;
+  }
+  .recitation-local-banner {
+    padding: 9px;
+  }
+}
+
+.recitation-live-note,
+.recitation-live-heading {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  color: #d9c58f;
+  font-size: 10px;
+  line-height: 1.7;
+}
+.recitation-live-note {
+  margin: 9px 2px 0;
+  color: var(--muted-2);
+}
+.recitation-live-heading {
+  margin-bottom: 11px;
+  color: #d9c58f;
+}
+.recitation-live-dot {
+  display: inline-block;
+  width: 7px;
+  height: 7px;
+  flex: 0 0 7px;
+  border-radius: 50%;
+  background: #d6a84f;
+  box-shadow: 0 0 0 3px rgba(214, 168, 79, .11);
+  animation: recitation-live-pulse 1.5s ease-in-out infinite;
+}
+.recitation-result.is-live {
+  border-color: rgba(214, 168, 79, .16);
+  background: rgba(214, 168, 79, .035);
+}
+@keyframes recitation-live-pulse {
+  50% { opacity: .42; box-shadow: 0 0 0 6px rgba(214, 168, 79, .035); }
+}
+:root:not(.dark) .recitation-live-note {
+  color: #68736a;
+}
+:root:not(.dark) .recitation-live-heading {
+  color: #76591e;
+}

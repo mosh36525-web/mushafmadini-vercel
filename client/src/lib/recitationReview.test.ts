@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { compareRecitation } from "./recitationReview";
+import { compareRecitation, compareRecitationPartial } from "./recitationReview";
 
 describe("compareRecitation", () => {
   it("ignores Arabic diacritics and normalizes alif and yaa", () => {
@@ -27,5 +27,14 @@ describe("compareRecitation", () => {
       referenceCount: 0,
       words: [],
     });
+  });
+
+  it("does not mark future verse words as missing during live recitation", () => {
+    const result = compareRecitationPartial(
+      "الحمد لله رب العالمين الرحمن الرحيم",
+      "الحمد لله رب العالمين"
+    );
+    expect(result.words.map(word => word.expected)).toEqual(["الحمد", "لله"]);
+    expect(result.words.some(word => word.status === "missing")).toBe(false);
   });
 });

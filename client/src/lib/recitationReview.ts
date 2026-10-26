@@ -121,3 +121,30 @@ export function compareRecitation(
     words: aligned,
   };
 }
+
+/**
+ * Compares only the stable beginning of an in-progress recitation. A small
+ * holdback avoids marking words that the reader has not reached yet as missing.
+ */
+export function compareRecitationPartial(
+  referenceText: string,
+  spokenText: string,
+  holdbackWords = 2
+): RecitationComparison {
+  const full = compareRecitation(referenceText, spokenText);
+  const stableExpectedCount = Math.max(0, words(spokenText).length - holdbackWords);
+  let expectedSeen = 0;
+  const partialWords = full.words.filter(word => {
+    if (word.status === "extra") return true;
+    expectedSeen += 1;
+    return expectedSeen <= stableExpectedCount;
+  });
+  const correctCount = partialWords.filter(word => word.status === "correct").length;
+  const evaluatedCount = partialWords.filter(word => word.status !== "extra").length;
+  return {
+    score: evaluatedCount ? Math.round((correctCount / evaluatedCount) * 100) : 0,
+    correctCount,
+    referenceCount: full.referenceCount,
+    words: partialWords,
+  };
+}
