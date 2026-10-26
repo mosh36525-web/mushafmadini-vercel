@@ -246,3 +246,19 @@
 :root:not(.dark) .manual-review-picker select { background: rgba(255,255,255,.7); }
 
 .manual-review-launch-button { width: 100%; margin-top: 9px; text-decoration: none; }
+
+.manual-review-tests-link {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 5px;
+  padding: 8px 11px;
+  color: var(--text, #f1eee7);
+  border: 1px solid rgba(214,168,79,.26);
+  border-radius: 10px;
+  background: rgba(214,168,79,.07);
+  font-size: 11px;
+  text-decoration: none;
+  white-space: nowrap;
+}
+.manual-review-tests-link:hover { color: var(--gold-light,#ead49b); background: rgba(214,168,79,.12); }

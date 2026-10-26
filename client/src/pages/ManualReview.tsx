@@ -244,6 +244,9 @@ export default function ManualReviewPage() {
           <span className="manual-review-local-badge">
             <BookOpen size={15} /> مراجعة يدوية بلا AI
           </span>
+          <Link href="/manual-review-test" className="manual-review-tests-link">
+            اختبر حفظك <ChevronLeft size={15} />
+          </Link>
         </header>
 
         <section className="manual-review-hero">
