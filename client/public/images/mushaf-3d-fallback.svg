@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 520" role="img" aria-label="رسم زخرفي لمصحف مفتوح وقبة ومئذنتين">
+  <defs>
+    <radialGradient id="halo" cx="50%" cy="50%" r="50%"><stop offset="0" stop-color="#d4af37" stop-opacity=".2"/><stop offset="1" stop-color="#d4af37" stop-opacity="0"/></radialGradient>
+    <linearGradient id="dome" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#54a77f"/><stop offset="1" stop-color="#0f4a36"/></linearGradient>
+    <linearGradient id="cover" x1="0" x2="1" y1="0" y2="1"><stop stop-color="#2e8b63"/><stop offset="1" stop-color="#0f4a36"/></linearGradient>
+    <linearGradient id="page" x1="0" x2="0" y1="0" y2="1"><stop stop-color="#fff7df"/><stop offset="1" stop-color="#d8c99f"/></linearGradient>
+    <filter id="blur"><feGaussianBlur stdDeviation="22"/></filter>
+    <filter id="glow"><feGaussianBlur stdDeviation="6" result="b"/><feMerge><feMergeNode in="b"/><feMergeNode in="SourceGraphic"/></feMerge></filter>
+  </defs>
+  <ellipse cx="600" cy="285" rx="330" ry="190" fill="url(#halo)"/>
+  <g fill="#174634" opacity=".82">
+    <path d="M377 215h24v145h-24zM372 210h34v9h-34zM378 195h22v15h-22zM375 190h28l-14-35zM386 143h6v10h-6z"/>
+    <path d="M799 215h24v145h-24zM794 210h34v9h-34zM800 195h22v15h-22zM797 190h28l-14-35zM808 143h6v10h-6z"/>
+    <path d="M428 358v-92a172 172 0 0 1 344 0v92z" fill="url(#dome)"/>
+    <path d="M585 87h30v24h-30zM581 83h38v7h-38zM590 75h20v8h-20z"/>
+    <path d="M600 123c-12 22-20 41-20 68h40c0-27-8-46-20-68z" fill="#d4af37" opacity=".5"/>
+    <path d="M416 357h368v20H416z"/>
+  </g>
+  <g fill="none" stroke="#d4af37" stroke-opacity=".6" stroke-width="2" stroke-dasharray="5 11" transform="rotate(-7 600 386)">
+    <ellipse cx="600" cy="387" rx="330" ry="74"/>
+  </g>
+  <g filter="url(#glow)" fill="#f3d77d">
+    <circle cx="340" cy="365" r="7"/><circle cx="600" cy="316" r="7"/><circle cx="860" cy="366" r="7"/>
+  </g>
+  <path d="M570 112h60l-30 154z" fill="#f4dc91" opacity=".12" filter="url(#blur)"/>
+  <g transform="translate(600 363)">
+    <path d="M-228 0Q-150-32 0 5Q150-32 228 0L204 79Q120 49 0 70Q-120 49-204 79z" fill="#102c23" opacity=".82" transform="translate(0 16)"/>
+    <path d="M-216-2Q-132-37 0 1v72Q-123 45-204 79z" fill="url(#page)" stroke="#d4af37" stroke-opacity=".72" stroke-width="3"/>
+    <path d="M216-2Q132-37 0 1v72Q123 45 204 79z" fill="url(#page)" stroke="#d4af37" stroke-opacity=".72" stroke-width="3"/>
+    <path d="M0 2v73" stroke="#9e7834" stroke-width="5"/>
+    <g stroke="#947d51" stroke-opacity=".5" stroke-width="2">
+      <path d="M-180 15Q-100-5-24 17M-180 28Q-95 9-24 30M-180 41Q-95 24-24 43M-180 54Q-95 38-24 56"/>
+      <path d="M180 15Q100-5 24 17M180 28Q95 9 24 30M180 41Q95 24 24 43M180 54Q95 38 24 56"/>
+    </g>
+    <path d="M-219 77Q-107 48 0 74Q107 48 219 77l-16 12Q97 68 0 88Q-97 68-203 89z" fill="url(#cover)" stroke="#d4af37" stroke-width="3"/>
+    <path d="M-8-43-2-28 13-34 8-19 23-14 8-7 13 8-2 2-8 17-14 2-29 8-24-7-39-14-24-19-29-34-14-28z" fill="#d4af37"/>
+  </g>
+  <g fill="#f3d77d" opacity=".8">
+    <circle cx="281" cy="201" r="3"/><circle cx="923" cy="228" r="2"/><circle cx="344" cy="276" r="2"/><circle cx="851" cy="169" r="3"/><circle cx="710" cy="93" r="2"/><circle cx="483" cy="118" r="2"/><circle cx="960" cy="333" r="3"/>
+  </g>
+</svg>

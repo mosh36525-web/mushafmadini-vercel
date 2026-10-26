@@ -1166,3 +1166,311 @@
     padding-bottom: 10px;
   }
 }
+
+/* Visible 3D Quran book on the home page's featured verse card. */
+.featured-verse-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 164px;
+  align-items: center;
+  gap: 12px;
+}
+.featured-verse-content {
+  position: relative;
+  z-index: 1;
+  min-width: 0;
+  grid-column: 1;
+}
+.home-book-scene {
+  position: relative;
+  display: grid;
+  width: 160px;
+  height: 174px;
+  place-items: center;
+  grid-column: 2;
+  grid-row: 1;
+  perspective: 850px;
+  transform-style: preserve-3d;
+}
+.home-book-orbit {
+  position: absolute;
+  width: 148px;
+  height: 66px;
+  border: 1px solid rgba(239, 217, 151, .42);
+  border-radius: 50%;
+  transform: rotate(-20deg) rotateX(64deg);
+  box-shadow: 0 0 20px rgba(214, 168, 79, .08);
+}
+.home-book-orbit-one { animation: home-book-orbit 16s linear infinite; }
+.home-book-orbit-two {
+  width: 125px;
+  height: 88px;
+  border-color: rgba(239, 217, 151, .22);
+  transform: rotate(40deg) rotateX(67deg);
+}
+.home-book-shadow {
+  position: absolute;
+  bottom: 22px;
+  width: 88px;
+  height: 19px;
+  border-radius: 50%;
+  background: rgba(0, 0, 0, .45);
+  filter: blur(8px);
+  transform: rotateX(66deg);
+}
+.home-book-model {
+  position: relative;
+  width: 100px;
+  height: 132px;
+  transform: rotateX(8deg) rotateY(-27deg) rotateZ(-7deg);
+  transform-style: preserve-3d;
+  animation: home-book-float 4.8s ease-in-out infinite;
+  filter: drop-shadow(12px 15px 10px rgba(0, 0, 0, .34));
+}
+.home-book-pages {
+  position: absolute;
+  inset: 5px -9px 4px 12px;
+  border: 1px solid rgba(107, 78, 34, .85);
+  border-radius: 5px 7px 7px 5px;
+  background: repeating-linear-gradient(180deg, #fff1ca 0 2px, #cdb67f 2px 3px);
+  box-shadow: 3px 3px 0 #a58445, 6px 6px 0 #715633;
+  transform: translateZ(-4px);
+}
+.home-book-spine {
+  position: absolute;
+  top: 1px;
+  left: -11px;
+  width: 15px;
+  height: calc(100% - 2px);
+  border: 1px solid rgba(230, 195, 112, .8);
+  border-radius: 6px 0 0 6px;
+  background: linear-gradient(90deg, #10251e, #397154 53%, #17392d);
+  transform: rotateY(-28deg) translateZ(1px);
+}
+.home-book-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
+  color: #fff0bd;
+  border: 1px solid rgba(244, 214, 143, .95);
+  border-radius: 6px 8px 8px 6px;
+  outline: 1px solid rgba(244, 214, 143, .4);
+  outline-offset: -6px;
+  background:
+    radial-gradient(circle at 50% 40%, rgba(222, 179, 82, .3), transparent 38%),
+    linear-gradient(145deg, #347052, #102b24 68%, #1b4435);
+  box-shadow: inset 0 0 0 3px rgba(226, 190, 107, .2), inset 10px 0 14px rgba(0, 0, 0, .25);
+  transform: translateZ(6px);
+}
+.home-book-cover strong {
+  font-family: "Amiri", "Noto Naskh Arabic", serif;
+  font-size: 13px;
+  font-weight: 700;
+  text-shadow: 0 2px 4px rgba(0, 0, 0, .7);
+}
+.home-book-cover small { color: #e6ce91; font-size: 7px; letter-spacing: .08em; }
+.home-book-emblem {
+  display: grid;
+  width: 29px;
+  height: 29px;
+  place-items: center;
+  color: #f4d88e;
+  border: 1px solid rgba(244, 216, 142, .88);
+  border-radius: 50%;
+  font-size: 18px;
+  box-shadow: 0 0 15px rgba(244, 216, 142, .23);
+}
+.home-book-spark {
+  position: absolute;
+  top: 17px;
+  right: 15px;
+  color: #ffe8a4;
+  font-size: 19px;
+  text-shadow: 0 0 14px rgba(255, 232, 164, .95);
+  animation: home-book-spark 2.8s ease-in-out infinite;
+}
+@keyframes home-book-float {
+  0%, 100% { transform: translateY(0) rotateX(8deg) rotateY(-27deg) rotateZ(-7deg); }
+  50% { transform: translateY(-8px) rotateX(11deg) rotateY(-19deg) rotateZ(-4deg); }
+}
+@keyframes home-book-orbit {
+  from { transform: rotate(-20deg) rotateX(64deg); }
+  to { transform: rotate(340deg) rotateX(64deg); }
+}
+@keyframes home-book-spark {
+  0%, 100% { opacity: .45; transform: scale(.8); }
+  50% { opacity: 1; transform: scale(1.18); }
+}
+:root:not(.dark) .home-book-scene { filter: drop-shadow(0 3px 5px rgba(54, 41, 20, .1)); }
+@media (max-width: 800px) {
+  .featured-verse-card { grid-template-columns: minmax(0, 1fr) 112px; gap: 5px; }
+  .home-book-scene { width: 112px; height: 140px; transform: scale(.82); }
+  .home-book-orbit { width: 128px; }
+}
+@media (max-width: 430px) {
+  .featured-verse-card { grid-template-columns: minmax(0, 1fr) 80px; gap: 0; padding: 15px 12px; }
+  .home-book-scene { width: 88px; height: 116px; transform: scale(.66); transform-origin: center; }
+  .featured-verse-text { font-size: clamp(18px, 5vw, 23px); }
+  .featured-verse-topline { align-items: flex-start; flex-direction: column; }
+  .featured-verse-date { max-width: 100%; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-book-model, .home-book-orbit-one, .home-book-spark { animation: none; }
+}
+
+/* Immersive procedural Three.js home scene; fallback SVG is always beneath it. */
+.home-three-hero {
+  position: relative;
+  isolation: isolate;
+  min-height: 390px;
+  margin: 0 0 18px;
+  overflow: hidden;
+  border: 1px solid rgba(212, 175, 55, .24);
+  border-radius: 24px;
+  background:
+    radial-gradient(ellipse at 50% 70%, rgba(46, 139, 99, .13), transparent 48%),
+    linear-gradient(135deg, #101820, #14241f 62%, #101820);
+  box-shadow: inset 0 1px rgba(243, 235, 211, .035), 0 22px 58px rgba(0, 0, 0, .2);
+  contain: layout paint;
+}
+.home-three-hero::before {
+  position: absolute;
+  z-index: 0;
+  inset: 0;
+  pointer-events: none;
+  content: "";
+  opacity: .34;
+  background-image: radial-gradient(rgba(212, 175, 55, .17) .7px, transparent .9px);
+  background-size: 29px 29px;
+  mask-image: radial-gradient(ellipse at center, #000 15%, transparent 80%);
+}
+.home-three-fallback, .home-three-canvas {
+  position: absolute;
+  inset: 0;
+  display: block;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+.home-three-fallback {
+  z-index: 1;
+  object-fit: contain;
+  opacity: 1;
+  transition: opacity .8s ease;
+}
+.home-three-fallback.is-ready { opacity: .035; }
+.home-three-canvas { z-index: 2; opacity: 0; transition: opacity .9s ease; }
+.home-three-canvas.is-ready { opacity: 1; }
+.home-three-vignette {
+  position: absolute;
+  z-index: 3;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(16, 24, 32, .08), transparent 28% 68%, rgba(16, 24, 32, .16));
+}
+.home-three-copy {
+  position: absolute;
+  z-index: 5;
+  top: 24px;
+  right: 27px;
+  width: min(320px, 38%);
+  display: grid;
+  justify-items: start;
+  gap: 9px;
+  padding: 15px 17px;
+  border: 1px solid rgba(243, 235, 211, .09);
+  border-radius: 16px;
+  background: linear-gradient(135deg, rgba(16, 24, 32, .82), rgba(16, 24, 32, .48));
+  backdrop-filter: blur(7px);
+}
+.home-three-eyebrow { display: flex; align-items: center; gap: 7px; color: #e6c769; font-size: 10px; letter-spacing: .03em; }
+.home-three-copy h2 { margin: 0; color: #f3ebd3; font-family: "IBM Plex Sans Arabic", "Segoe UI", sans-serif; font-size: clamp(19px, 2.2vw, 26px); font-weight: 500; letter-spacing: -.04em; }
+.home-three-copy p { margin: 0; color: #c0c2b7; font-size: 11px; line-height: 1.8; }
+.home-three-motion, .home-three-turn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-height: 32px;
+  padding: 0 10px;
+  color: #e7d39a;
+  border: 1px solid rgba(212, 175, 55, .24);
+  border-radius: 20px;
+  background: rgba(212, 175, 55, .08);
+  font-size: 9px;
+  transition: background .25s ease, border-color .25s ease;
+}
+.home-three-motion:hover, .home-three-turn:hover { border-color: rgba(212, 175, 55, .56); background: rgba(212, 175, 55, .15); }
+.home-three-turn { position: absolute; z-index: 6; top: 25px; left: 25px; min-height: 35px; }
+.home-three-points { position: absolute; z-index: 6; inset: 0; pointer-events: none; }
+.home-three-point {
+  position: absolute;
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  min-height: 37px;
+  padding: 4px 11px 4px 7px;
+  color: #f3ebd3;
+  border: 1px solid rgba(212, 175, 55, .43);
+  border-radius: 24px;
+  background: rgba(16, 24, 32, .76);
+  box-shadow: 0 4px 18px rgba(0, 0, 0, .3), inset 0 0 12px rgba(212, 175, 55, .06);
+  font-size: 10px;
+  white-space: nowrap;
+  transform: translate(-50%, -50%);
+  pointer-events: auto;
+  backdrop-filter: blur(5px);
+  transition: transform .25s ease, background .25s ease, border-color .25s ease;
+}
+.home-three-point:hover { border-color: #d4af37; background: rgba(25, 52, 41, .92); transform: translate(-50%, -53%); }
+.home-three-point-pulse { display: grid; width: 25px; height: 25px; place-items: center; color: #edcf6f; border: 1px solid rgba(212, 175, 55, .38); border-radius: 50%; background: rgba(212, 175, 55, .1); }
+.home-three-point-rosette { display: grid; place-items: center; font-size: 15px; line-height: 1; }
+.home-three-status { position: absolute; z-index: 4; bottom: 12px; left: 14px; color: rgba(243, 235, 211, .48); font-size: 8px; pointer-events: none; }
+:root:not(.dark) .home-three-hero { border-color: rgba(132, 105, 41, .25); background: radial-gradient(ellipse at 50% 70%, rgba(46, 139, 99, .16), transparent 48%), linear-gradient(135deg, #12251f, #182b24 62%, #13231f); }
+:root:not(.dark) .home-three-copy { background: linear-gradient(135deg, rgba(16, 35, 28, .9), rgba(16, 35, 28, .68)); }
+.featured-verse-card { grid-template-columns: minmax(0, 1fr); }
+.featured-verse-content { grid-column: 1; }
+
+@media (hover: hover) and (prefers-reduced-motion: no-preference) {
+  .daily-card, .next-prayer-card, .azkar-card {
+    transform-style: preserve-3d;
+    transition: transform .32s ease, border-color .32s ease, box-shadow .32s ease;
+  }
+  .daily-card:hover { transform: perspective(950px) rotateX(.65deg) rotateY(-.6deg) translateY(-2px); box-shadow: 0 15px 35px rgba(0, 0, 0, .18); }
+  .next-prayer-card:hover { transform: perspective(950px) rotateX(.55deg) rotateY(.55deg) translateY(-2px); box-shadow: 0 15px 35px rgba(0, 0, 0, .16); }
+  .azkar-card:hover { transform: perspective(950px) rotateX(.5deg) rotateY(-.45deg) translateY(-1px); }
+}
+.ayahs { transform-origin: 50% 0; backface-visibility: hidden; }
+.ayahs.page-turn-in { animation: mushaf-page-turn-in .32s cubic-bezier(.2, .65, .25, 1) both; }
+@keyframes mushaf-page-turn-in {
+  from { opacity: .72; transform: perspective(1300px) rotateY(-2.5deg) translateY(4px); }
+  to { opacity: 1; transform: perspective(1300px) rotateY(0) translateY(0); }
+}
+@media (max-width: 820px) {
+  .home-three-hero { min-height: 360px; border-radius: 20px; }
+  .home-three-copy { top: 15px; right: 15px; width: min(280px, 48%); padding: 12px 13px; }
+  .home-three-turn { top: 15px; left: 15px; }
+}
+@media (max-width: 520px) {
+  .home-three-hero { min-height: 325px; margin-bottom: 14px; border-radius: 17px; }
+  .home-three-fallback { object-fit: cover; object-position: center 56%; }
+  .home-three-copy { top: 11px; right: 10px; width: min(235px, 61%); gap: 6px; padding: 9px 10px; border-radius: 12px; }
+  .home-three-copy h2 { font-size: 17px; }
+  .home-three-copy p { font-size: 9px; }
+  .home-three-eyebrow { font-size: 8px; }
+  .home-three-motion { min-height: 28px; padding: 0 8px; font-size: 8px; }
+  .home-three-turn { top: auto; bottom: 56px; left: 50%; min-height: 30px; transform: translateX(-50%); }
+  .home-three-point { min-height: 32px; gap: 5px; padding: 3px 8px 3px 5px; font-size: 9px; }
+  .home-three-point-pulse { width: 22px; height: 22px; }
+  .home-three-point-home-wird { top: 87% !important; }
+  .home-three-point-home-salat { left: 80% !important; top: 75% !important; }
+  .home-three-point-home-tranquility { left: 20% !important; top: 75% !important; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .home-three-fallback, .home-three-canvas { transition: none; }
+  .home-three-point, .home-three-motion, .home-three-turn { transition: none; }
+  .ayahs.page-turn-in { animation: none; }
+}

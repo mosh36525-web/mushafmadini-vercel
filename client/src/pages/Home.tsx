@@ -55,6 +55,7 @@ import DuaPage from "@/components/features/DuaPage";
 import TasbihPage from "@/components/features/TasbihPage";
 import AccountPage from "@/components/features/AccountPage";
 import RecitationCoach from "@/components/RecitationCoach";
+import HomeThreeHero from "@/components/HomeThreeHero";
 import { trpc } from "@/lib/trpc";
 import { normalizeArabic } from "@/lib/arabic";
 import { useAccountSync } from "@/hooks/useAccountSync";
@@ -921,7 +922,9 @@ export default function Home() {
               </div>
             </section>
 
-            <section className="featured-verse-card" aria-labelledby="featured-verse-title">
+            <HomeThreeHero />
+
+            <section className="featured-verse-card" id="home-tranquility" aria-labelledby="featured-verse-title">
               <div className="featured-verse-topline">
                 <span className="featured-verse-label" id="featured-verse-title"><Sparkles size={16} /> آية اليوم</span>
                 <span className="featured-verse-date">{dailyDate}</span>
@@ -950,7 +953,7 @@ export default function Home() {
             </section>
 
             <section className="hero-grid">
-              <div className="daily-card panel-glow">
+              <div className="daily-card panel-glow" id="home-wird">
                 <div className="daily-pattern" />
                 <div className="daily-card-top">
                   <span className="gold-dot" /> <span>وردك اليومي</span>
@@ -1013,7 +1016,7 @@ export default function Home() {
                   </button>
                 </div>
               </div>
-              <div className="next-prayer-card">
+              <div className="next-prayer-card" id="home-salat">
                 <div className="card-label-row">
                   <span>
                     <Clock3 size={16} /> الصلاة القادمة
@@ -1370,7 +1373,7 @@ export default function Home() {
                     </button>
                   </div>
                 )}
-                <div className="ayahs" style={{ fontSize: `${fontSize}px` }}>
+                <div key={`${selectedSurah.number}:${verseChunk}`} className="ayahs page-turn-in" style={{ fontSize: `${fontSize}px` }}>
                   {visibleAyahs.map(ayah => (
                     <button
                       key={ayah.number}
