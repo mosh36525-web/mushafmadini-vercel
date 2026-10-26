@@ -14,26 +14,14 @@ import {
   compareRecitationPartial,
   type RecitationComparison,
 } from "@/lib/recitationReview";
-
-type WorkerResponse =
-  | { type: "progress"; file?: string; progress?: number; status?: string }
-  | { type: "ready" }
-  | { type: "transcript"; requestId: number; text: string; isFinal: boolean }
-  | {
-      type: "error";
-      stage: "load" | "transcribe";
-      requestId?: number;
-      isFinal?: boolean;
-      message: string;
-    };
-type WorkerRequest =
-  | { type: "load" }
-  | {
-      type: "transcribe";
-      requestId: number;
-      audioBuffer: ArrayBuffer;
-      isFinal: boolean;
-    };
+import {
+  getRecitationWorker,
+  nextRecitationRequestId,
+  preloadRecitationModel,
+  subscribeToRecitationModelStatus,
+  subscribeToRecitationWorkerMessages,
+  type RecitationWorkerRequest,
+} from "@/lib/recitationModel";
 
 const MAX_RECORDING_SECONDS = 180;
 const LIVE_CHECK_INTERVAL_SECONDS = 8;
@@ -75,13 +63,12 @@ export default function RecitationCoach({
   referenceText: string;
   verseNumber: number;
 }) {
-  const workerRef = useRef<Worker | null>(null);
   const recorderRef = useRef<MediaRecorder | null>(null);
   const streamRef = useRef<MediaStream | null>(null);
   const chunksRef = useRef<BlobPart[]>([]);
   const timerRef = useRef<number | null>(null);
   const recordingStartedAtRef = useRef(0);
-  const requestIdRef = useRef(0);
+  const requestIdRef = useRef(nextRecitationRequestId());
   const referenceTextRef = useRef(referenceText);
   const isRecordingRef = useRef(false);
   const liveRequestPendingRef = useRef(false);
@@ -128,27 +115,20 @@ export default function RecitationCoach({
   }
 
   function getWorker() {
-    if (workerRef.current) return workerRef.current;
-    const worker = new Worker(
-      new URL("../workers/recitation.worker.ts", import.meta.url),
-      { type: "module" }
-    );
-    worker.onmessage = (event: MessageEvent<WorkerResponse>) => {
-      const message = event.data;
-      if (message.type === "progress") {
-        setModelLoading(true);
-        setModelFile(getFileLabel(message.file));
-        setModelProgress(
-          typeof message.progress === "number"
-            ? Math.max(0, Math.min(100, Math.round(message.progress)))
-            : null
-        );
-      } else if (message.type === "ready") {
-        setModelReady(true);
-        setModelLoading(false);
-        setModelProgress(100);
-        setError("");
-      } else if (message.type === "transcript") {
+    return getRecitationWorker();
+  }
+
+  useEffect(() => {
+    const unsubscribeStatus = subscribeToRecitationModelStatus(status => {
+      setModelReady(status.ready);
+      setModelLoading(status.loading);
+      setModelProgress(status.progress);
+      setModelFile(getFileLabel(status.file));
+      if (status.ready) setError("");
+      else if (status.error) setError(status.error);
+    });
+    const unsubscribeMessages = subscribeToRecitationWorkerMessages(message => {
+      if (message.type === "transcript") {
         if (message.requestId !== requestIdRef.current) return;
         liveRequestPendingRef.current = false;
         setIsTranscribing(false);
@@ -175,24 +155,19 @@ export default function RecitationCoach({
           return;
         }
         if (message.stage === "transcribe") liveRequestPendingRef.current = false;
-        setModelLoading(false);
         setIsTranscribing(false);
         setError(message.message);
       }
+    });
+    return () => {
+      unsubscribeStatus();
+      unsubscribeMessages();
     };
-    worker.onerror = () => {
-      liveRequestPendingRef.current = false;
-      setModelLoading(false);
-      setIsTranscribing(false);
-      setError("توقف محرك التسميع المحلي. حدّث الصفحة وحاول مرة أخرى.");
-    };
-    workerRef.current = worker;
-    return worker;
-  }
+  }, []);
 
   useEffect(() => {
     referenceTextRef.current = referenceText;
-    requestIdRef.current += 1;
+    requestIdRef.current = nextRecitationRequestId();
     discardRecording();
     setIsTranscribing(false);
     setRecordingSeconds(0);
@@ -213,8 +188,6 @@ export default function RecitationCoach({
         if (recorder.state !== "inactive") recorder.stop();
       }
       stopTracks();
-      workerRef.current?.terminate();
-      workerRef.current = null;
     },
     []
   );
@@ -225,7 +198,7 @@ export default function RecitationCoach({
     setModelLoading(true);
     setModelProgress(null);
     try {
-      getWorker().postMessage({ type: "load" } satisfies WorkerRequest);
+      preloadRecitationModel();
     } catch {
       setModelLoading(false);
       setError("تعذر تشغيل محرك التسميع المحلي في هذا المتصفح.");
@@ -256,9 +229,10 @@ export default function RecitationCoach({
         audio.byteOffset,
         audio.byteOffset + audio.byteLength
       ) as ArrayBuffer;
-      const requestId = ++requestIdRef.current;
+      const requestId = nextRecitationRequestId();
+      requestIdRef.current = requestId;
       getWorker().postMessage(
-        { type: "transcribe", requestId, audioBuffer: transferable, isFinal } satisfies WorkerRequest,
+        { type: "transcribe", requestId, audioBuffer: transferable, isFinal } satisfies RecitationWorkerRequest,
         [transferable]
       );
     } catch {
@@ -375,7 +349,7 @@ export default function RecitationCoach({
   }
 
   function retry() {
-    requestIdRef.current += 1;
+    requestIdRef.current = nextRecitationRequestId();
     if (isRecordingRef.current) discardRecording();
     liveRequestPendingRef.current = false;
     setIsTranscribing(false);
@@ -406,7 +380,7 @@ export default function RecitationCoach({
         <ShieldCheck size={16} />
         <p>
           صوتك لا يُرسل إلى الموقع أو لخدمة خارجية. يُنزّل النموذج مرة أولى
-          (قرابة 100 ميغابايت) ثم تُجرى المعالجة محليًا ويُحفظ النموذج مؤقتًا في المتصفح.
+          (قرابة 45 ميغابايت) ثم تُجرى المعالجة محليًا ويُحفظ النموذج مؤقتًا في المتصفح.
         </p>
       </div>
 
@@ -421,7 +395,7 @@ export default function RecitationCoach({
                   ? modelFile
                     ? `تحميل ${modelFile}`
                     : "يتم تنزيل الملفات للمرة الأولى…"
-                  : "Whisper Tiny متعدد اللغات • تنزيل أول مرة فقط"}
+                  : "Whisper Tiny القرآني من Tarteel • Apache 2.0 • تنزيل أول مرة فقط"}
               </small>
             </div>
           </div>

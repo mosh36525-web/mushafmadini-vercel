@@ -39,7 +39,9 @@ type Transcriber = (
 ) => Promise<{ text?: string } | Array<{ text?: string }>>;
 
 const workerScope = self as unknown as WorkerScope;
-const MODEL_ID = "onnx-community/whisper-tiny";
+// Tarteel Quran-tuned Whisper Tiny; Transformers.js-compatible Q8 ONNX export.
+// Source fine-tune and ONNX conversion are both published under Apache-2.0.
+const MODEL_ID = "Sharjeelbaig/whisper-tiny-ar-quran-onnx";
 const SAMPLE_RATE = 16_000;
 let transcriber: Transcriber | null = null;
 let loadPromise: Promise<Transcriber> | null = null;
@@ -53,7 +55,7 @@ async function loadModel(): Promise<Transcriber> {
   if (transcriber) return transcriber;
   if (!loadPromise) {
     loadPromise = pipeline("automatic-speech-recognition", MODEL_ID, {
-      dtype: "q4",
+      dtype: "q8",
       progress_callback: (info: ProgressInfo) => {
         workerScope.postMessage({
           type: "progress",
