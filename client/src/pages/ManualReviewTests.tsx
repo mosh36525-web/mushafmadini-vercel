@@ -5,6 +5,7 @@ import {
   ChevronLeft,
   Eye,
   EyeOff,
+  ListChecks,
   RotateCcw,
   Shuffle,
   Type,
@@ -13,15 +14,16 @@ import { Link } from "wouter";
 import { surahs } from "@/data/surahs";
 import { useQuran } from "@/hooks/useQuran";
 import {
+  buildNextVerseQuizQuestions,
   buildFillQuizQuestions,
   isQuizAnswerCorrect,
   type FillQuizQuestion,
+  type NextVerseQuizQuestion,
 } from "@/lib/manualReviewQuiz";
 import "./ManualReviewTests.css";
 
-type QuizMode = "recitation" | "fill";
+type QuizMode = "recitation" | "fill" | "next";
 type ManualGrade = "mastered" | "hint" | "repeat";
-
 const reviewStorageKey = "madini-manual-review-v1";
 
 function shuffle<T>(items: T[]) {
@@ -83,6 +85,12 @@ export default function ManualReviewTestsPage() {
   const [fillChecked, setFillChecked] = useState<boolean | null>(null);
   const [fillError, setFillError] = useState("");
   const [fillCorrectCount, setFillCorrectCount] = useState(0);
+  const [nextQuestions, setNextQuestions] = useState<NextVerseQuizQuestion[]>([]);
+  const [nextIndex, setNextIndex] = useState(0);
+  const [nextSelected, setNextSelected] = useState<number | null>(null);
+  const [nextChecked, setNextChecked] = useState<boolean | null>(null);
+  const [nextError, setNextError] = useState("");
+  const [nextCorrectCount, setNextCorrectCount] = useState(0);
 
   const selectedSurah = surahs.find(item => item.number === surahNumber) ?? surahs[0];
   const selectedQuranSurah = quran.find(item => item.number === surahNumber);
@@ -90,8 +98,12 @@ export default function ManualReviewTestsPage() {
   const toVerse = Number(toInput);
   const currentRecitationVerse = recitationOrder[recitationIndex];
   const currentFillQuestion = fillQuestions[fillIndex];
+  const currentNextQuestion = nextQuestions[nextIndex];
   const currentVerseText = selectedQuranSurah?.ayahs.find(
     ayah => ayah.numberInSurah === currentRecitationVerse
+  )?.text;
+  const currentNextVerseText = selectedQuranSurah?.ayahs.find(
+    ayah => ayah.numberInSurah === currentNextQuestion?.promptVerse
   )?.text;
 
   const recitationStats = useMemo(() => recitationGrades.reduce(
@@ -113,6 +125,12 @@ export default function ManualReviewTestsPage() {
     setFillChecked(null);
     setFillError("");
     setFillCorrectCount(0);
+    setNextQuestions([]);
+    setNextIndex(0);
+    setNextSelected(null);
+    setNextChecked(null);
+    setNextError("");
+    setNextCorrectCount(0);
   }
 
   function changeMode(nextMode: QuizMode) {
@@ -157,6 +175,22 @@ export default function ManualReviewTestsPage() {
       setRecitationOrder(order);
       setRecitationIndex(0);
       setRecitationGrades([]);
+      setQuizActive(true);
+      return;
+    }
+
+    if (mode === "next") {
+      const questions = buildNextVerseQuizQuestions(fromVerse, toVerse);
+      if (!questions.length) {
+        setRangeError("اختبار اختيار الآية التالية يحتاج إلى ثلاث آيات متتابعة على الأقل.");
+        return;
+      }
+      setNextQuestions(questions);
+      setNextIndex(0);
+      setNextSelected(null);
+      setNextChecked(null);
+      setNextError("");
+      setNextCorrectCount(0);
       setQuizActive(true);
       return;
     }
@@ -220,8 +254,42 @@ export default function ManualReviewTestsPage() {
     setQuizComplete(true);
   }
 
-  const questionTotal = mode === "recitation" ? recitationOrder.length : fillQuestions.length;
-  const questionIndex = mode === "recitation" ? recitationIndex : fillIndex;
+  function checkNextAnswer() {
+    if (!currentNextQuestion) return;
+    if (nextSelected === null) {
+      setNextError("اختر الآية التي تعتقد أنها التالية.");
+      return;
+    }
+    const correct = nextSelected === currentNextQuestion.correctVerse;
+    setNextChecked(correct);
+    setNextError("");
+    setNextCorrectCount(count => count + (correct ? 1 : 0));
+    saveSelfGrade(
+      surahNumber,
+      currentNextQuestion.correctVerse,
+      correct ? "mastered" : "repeat"
+    );
+  }
+
+  function advanceNextQuestion() {
+    if (nextIndex + 1 < nextQuestions.length) {
+      setNextIndex(nextIndex + 1);
+      setNextSelected(null);
+      setNextChecked(null);
+      setNextError("");
+      return;
+    }
+    setQuizActive(false);
+    setQuizComplete(true);
+  }
+
+  function previewVerse(verseNumber: number) {
+    const text = selectedQuranSurah?.ayahs.find(ayah => ayah.numberInSurah === verseNumber)?.text;
+    if (!text) return "تعذر تحميل نص الآية";
+    const words = text.trim().split(/\s+/);
+    return `${words.slice(0, 6).join(" ")}${words.length > 6 ? " …" : ""}`;
+  }
+
   const fillPercent = fillQuestions.length
     ? Math.round((fillCorrectCount / fillQuestions.length) * 100)
     : 0;
@@ -263,6 +331,15 @@ export default function ManualReviewTestsPage() {
                 <Type size={18} />
                 <span><strong>أكمل الآية</strong><small>اكتب الكلمات المحذوفة</small></span>
               </button>
+              <button
+                type="button"
+                className={mode === "next" ? "is-active" : ""}
+                aria-pressed={mode === "next"}
+                onClick={() => changeMode("next")}
+              >
+                <ListChecks size={18} />
+                <span><strong>اختر الآية التالية</strong><small>تدرّب على تسلسل الآيات</small></span>
+              </button>
             </div>
 
             <form className="manual-review-test-picker" onSubmit={startQuiz}>
@@ -285,7 +362,13 @@ export default function ManualReviewTestsPage() {
                 <input type="number" min="1" max={selectedSurah.ayahs} value={toInput} inputMode="numeric" onChange={event => setToInput(event.target.value)} />
               </label>
               <button className="manual-review-test-primary" type="submit" disabled={loading}>
-                {loading ? "جارٍ تحميل المصحف..." : mode === "recitation" ? "ابدأ الاختبار العشوائي" : "ابدأ اختبار إكمال الآية"}
+                {loading
+                  ? "جارٍ تحميل المصحف..."
+                  : mode === "recitation"
+                    ? "ابدأ الاختبار العشوائي"
+                    : mode === "fill"
+                      ? "ابدأ اختبار إكمال الآية"
+                      : "ابدأ اختبار الآية التالية"}
                 <ChevronLeft size={17} />
               </button>
               {rangeError && <p className="manual-review-test-error" role="alert">{rangeError}</p>}
@@ -332,6 +415,67 @@ export default function ManualReviewTestsPage() {
                 <button type="button" className="test-grade-repeat" onClick={() => recordRecitationGrade("repeat")}>أعيدها</button>
               </div>
             </div>
+          </section>
+        )}
+
+        {quizActive && mode === "next" && currentNextQuestion && (
+          <section className="manual-review-test-card">
+            <div className="manual-review-test-progress">
+              <span>السؤال {nextIndex + 1} من {nextQuestions.length}</span>
+              <span>سورة {selectedSurah.name} · ترتيب الآيات</span>
+            </div>
+            <div className="manual-review-test-progress-track">
+              <span style={{ width: `${Math.round(((nextIndex + 1) / nextQuestions.length) * 100)}%` }} />
+            </div>
+            <div className="manual-review-test-question-head">
+              <span className="manual-review-tests-eyebrow">ما الآية التي تأتي بعدها؟</span>
+              <h2>بعد الآية {currentNextQuestion.promptVerse}</h2>
+            </div>
+            <div className="manual-review-next-prompt">
+              <p>{currentNextVerseText || "تعذر تحميل نص الآية."}</p>
+            </div>
+            <div className="manual-review-next-choices" role="group" aria-label="اختر الآية التالية">
+              {currentNextQuestion.choices.map(verseNumber => {
+                const isCorrectOption = verseNumber === currentNextQuestion.correctVerse;
+                const isSelected = verseNumber === nextSelected;
+                const resultClass = nextChecked !== null
+                  ? isCorrectOption ? "is-correct" : isSelected ? "is-wrong" : ""
+                  : isSelected ? "is-selected" : "";
+                return (
+                  <button
+                    type="button"
+                    key={verseNumber}
+                    className={`manual-review-next-choice ${resultClass}`}
+                    aria-pressed={isSelected}
+                    disabled={nextChecked !== null}
+                    onClick={() => setNextSelected(verseNumber)}
+                  >
+                    <strong>الآية {verseNumber}</strong>
+                    <span>{previewVerse(verseNumber)}</span>
+                  </button>
+                );
+              })}
+            </div>
+            {nextError && <p className="manual-review-test-error" role="alert">{nextError}</p>}
+            {nextChecked !== null && (
+              <div className={`manual-review-next-feedback ${nextChecked ? "is-correct" : "is-wrong"}`} role="status">
+                {nextChecked
+                  ? "إجابة صحيحة، أحسنت."
+                  : `الإجابة الصحيحة هي الآية ${currentNextQuestion.correctVerse}.`}
+              </div>
+            )}
+            <button
+              type="button"
+              className="manual-review-test-primary manual-review-next-submit"
+              onClick={nextChecked === null ? checkNextAnswer : advanceNextQuestion}
+            >
+              {nextChecked === null
+                ? "تحقق من الإجابة"
+                : nextIndex + 1 < nextQuestions.length
+                  ? "السؤال التالي"
+                  : "عرض النتيجة"}
+              <ChevronLeft size={17} />
+            </button>
           </section>
         )}
 
@@ -418,9 +562,29 @@ export default function ManualReviewTestsPage() {
           </section>
         )}
 
+        {quizComplete && range && mode === "next" && (
+          <section className="manual-review-test-results" aria-live="polite">
+            <div className="manual-review-test-result-icon"><CheckCircle2 size={25} /></div>
+            <span className="manual-review-tests-eyebrow">انتهى اختبار ترتيب الآيات</span>
+            <h2>{nextCorrectCount} من {nextQuestions.length} إجابات صحيحة</h2>
+            <p>
+              نسبة الإجابة الصحيحة: {nextQuestions.length ? Math.round((nextCorrectCount / nextQuestions.length) * 100) : 0}٪
+              · الآيات {range[0]}–{range[1]}
+            </p>
+            <div className="manual-review-test-result-stats">
+              <span><strong>{nextCorrectCount}</strong> صحيح</span>
+              <span><strong>{nextQuestions.length - nextCorrectCount}</strong> للمراجعة</span>
+              <span><strong>{nextQuestions.length}</strong> سؤالًا</span>
+            </div>
+            <button className="manual-review-test-primary" type="button" onClick={resetRun}>
+              <RotateCcw size={16} /> اختبار جديد
+            </button>
+          </section>
+        )}
+
         {loading && <p className="manual-review-test-loading">جارٍ تحميل نص المصحف المحلي...</p>}
         <footer className="manual-review-tests-footer">
-          <span>اختبار التسميع يعتمد على تقييمك الشخصي، واختبار الكتابة يقارن النص محليًا دون AI.</span>
+          <span>التسميع العشوائي بتقييمك الشخصي، والكتابة واختيار الآية التالية يعملان محليًا دون AI.</span>
           <Link href="/manual-review">العودة للمراجعة اليدوية <ArrowLeft size={14} /></Link>
         </footer>
       </div>

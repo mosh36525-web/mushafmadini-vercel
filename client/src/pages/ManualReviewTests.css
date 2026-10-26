@@ -209,3 +209,52 @@
   .manual-review-test-progress { flex-direction: column; gap: 4px; }
   .manual-review-test-error-card { align-items: flex-start; flex-direction: column; }
 }
+
+.manual-review-test-modes { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.manual-review-next-prompt {
+  padding: clamp(15px, 3.5vw, 24px);
+  border: 1px solid rgba(214,168,79,.2);
+  border-radius: 14px;
+  background: linear-gradient(145deg,rgba(214,168,79,.07),rgba(255,255,255,.015));
+  text-align: center;
+}
+.manual-review-next-prompt p {
+  margin: 0;
+  color: var(--text,#f1eee7);
+  font-family: "Amiri","Noto Naskh Arabic",serif;
+  font-size: clamp(20px,3.5vw,29px);
+  line-height: 2;
+}
+.manual-review-next-choices { display: grid; grid-template-columns: repeat(2,minmax(0,1fr)); gap: 9px; margin-top: 14px; }
+.manual-review-next-choice {
+  display: grid;
+  gap: 6px;
+  min-height: 75px;
+  padding: 11px 13px;
+  color: var(--muted,#bdc5bc);
+  text-align: right;
+  border: 1px solid var(--line-strong,rgba(255,255,255,.14));
+  border-radius: 11px;
+  background: rgba(255,255,255,.03);
+  cursor: pointer;
+}
+.manual-review-next-choice:hover:not(:disabled),
+.manual-review-next-choice.is-selected { border-color: rgba(214,168,79,.45); background: rgba(214,168,79,.08); }
+.manual-review-next-choice:disabled { cursor: default; }
+.manual-review-next-choice strong { color: var(--text,#f1eee7); font-size: 11px; }
+.manual-review-next-choice span { overflow: hidden; color: var(--muted,#bdc5bc); font-family: "Amiri","Noto Naskh Arabic",serif; font-size: 17px; line-height: 1.7; text-overflow: ellipsis; }
+.manual-review-next-choice.is-correct { border-color: rgba(121,186,128,.45); background: rgba(121,186,128,.09); }
+.manual-review-next-choice.is-wrong { border-color: rgba(224,129,111,.45); background: rgba(224,129,111,.08); }
+.manual-review-next-choice.is-correct strong { color: #a5d1a8; }
+.manual-review-next-feedback { margin-top: 12px; padding: 10px 12px; border: 1px solid var(--line,rgba(255,255,255,.1)); border-radius: 10px; font-size: 11px; }
+.manual-review-next-feedback.is-correct { color: #a5d1a8; border-color: rgba(121,186,128,.25); background: rgba(121,186,128,.06); }
+.manual-review-next-feedback.is-wrong { color: #e9a397; border-color: rgba(224,129,111,.25); background: rgba(224,129,111,.06); }
+.manual-review-next-submit { margin-top: 12px; }
+:root:not(.dark) .manual-review-next-prompt p,
+:root:not(.dark) .manual-review-next-choice strong { color: var(--text,#23352c); }
+@media (max-width: 720px) {
+  .manual-review-test-modes { grid-template-columns: 1fr; }
+}
+@media (max-width: 460px) {
+  .manual-review-next-choices { grid-template-columns: 1fr; }
+}
