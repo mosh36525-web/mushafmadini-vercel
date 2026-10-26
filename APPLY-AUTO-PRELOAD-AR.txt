@@ -1,0 +1,29 @@
+تحديث: تنزيل نموذج التسميع تلقائيًا
+
+هذا التحديث يبدأ تجهيز نموذج Whisper محليًا فور ظهور التطبيق، ويعرض بطاقة تقدم واضحة مع زر لإيقاف التنزيل. أول زيارة قد تنزّل قرابة 100 ميغابايت؛ وقد يحتفظ المتصفح بالملفات مؤقتًا، لكن يمكن أن يحذفها لاحقًا. يستخدم قسم المراجعة العامل نفسه بعد فتحه لتجنب بدء تنزيل منفصل.
+
+التطبيق على Windows PowerShell:
+
+1) نزّل mushafmadini-auto-preload-update.zip إلى مجلد Downloads.
+2) افتح PowerShell والصق:
+
+$Project = Join-Path $env:USERPROFILE "mushafmadini-vercel-ntfs"
+$Zip = Join-Path $env:USERPROFILE "Downloads\mushafmadini-auto-preload-update.zip"
+Expand-Archive -LiteralPath $Zip -DestinationPath $Project -Force
+Set-Location $Project
+
+3) افحص محليًا (لا يلزم إعادة تثبيت الحزم؛ لا توجد تبعيات جديدة):
+
+pnpm check
+pnpm test
+pnpm build:static
+
+4) إذا نجحت الأوامر، أضف ملفات التحديث المحددة فقط ثم ارفعها:
+
+git add -- client/src/App.tsx client/src/components/RecitationCoach.tsx client/src/components/RecitationModelNotice.tsx client/src/lib/recitationModel.ts client/src/pages/enhancements.css
+git diff --cached --check
+git diff --cached --stat
+git commit -m "Preload recitation model on app entry"
+git push origin main
+
+بعد الرفع، راقب Vercel حتى يصبح نشر commit الجديد Ready.

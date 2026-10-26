@@ -1,0 +1,36 @@
+تحديث بطاقة المراجعة لتناسب الشاشة
+
+يتضمن هذا التحديث ملفين:
+- client/src/pages/Home.tsx: زر تصغير/تكبير وسحب البطاقة لأعلى أو لأسفل، مع عنوان الآية وأزرار إغلاق الجلسة.
+- client/src/pages/enhancements.css: البطاقة لا تتجاوز ارتفاع الشاشة، وعلى الهاتف تصبح لوحة سفلية قابلة للتوسيع، ومحتواها يتمرر داخليًا كي تظل أدوات التحكم ظاهرة.
+
+التطبيق على Windows PowerShell:
+
+1) نزّل mushafmadini-review-fit-update.zip إلى مجلد Downloads.
+2) في PowerShell الصق:
+
+$Project = Join-Path $env:USERPROFILE "mushafmadini-vercel-ntfs"
+$Zip = Join-Path $env:USERPROFILE "Downloads\mushafmadini-review-fit-update.zip"
+Test-Path $Zip
+
+لا تتابع إذا لم تظهر True. بعد اكتمال التنزيل:
+
+Expand-Archive -LiteralPath $Zip -DestinationPath $Project -Force
+Set-Location $Project
+
+3) شغّل كل فحص على حدة:
+
+pnpm check
+pnpm test
+pnpm build:static
+
+4) إذا نجحت الفحوصات، ارفع الملفين:
+
+git add -- client/src/pages/Home.tsx client/src/pages/enhancements.css
+git status --short
+git diff --cached --check
+git diff --cached --stat
+git commit -m "Make review card fit the screen"
+git push origin main
+
+بعدها انتظر نشر Vercel حتى تصبح الحالة Ready.

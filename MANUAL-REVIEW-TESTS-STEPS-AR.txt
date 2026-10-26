@@ -1,0 +1,51 @@
+إضافة اختبارين إلى صفحة المراجعة اليدوية
+
+المميزات:
+- اختبار تسميع عشوائي: يخلط ترتيب آيات النطاق. يحاول المستخدم التسميع من حفظه، ثم يكشف الآية ويقيّم نفسه. النتيجة تعرض عدد الآيات التي أتقنها أو احتاج فيها تلميحًا أو يود إعادتها.
+- اختبار «أكمل الآية»: يحذف كلمات من كل آية ويكتب المستخدم الكلمات الناقصة. تتم المقارنة محليًا بعد تجاهل التشكيل وعلامات الترقيم وتوحيد صور الألف. النتيجة تحسب الإجابات المطابقة.
+- التقييم يحفظ في نفس سجل التقدم المحلي لصفحة المراجعة اليدوية. لا يستخدم AI ولا يرفع الصوت أو النص.
+- أضيف رابط «اختبر حفظك» إلى صفحة المراجعة اليدوية، ومسار /manual-review-test. فتح صفحتي المراجعة والاختبار مباشرة يتجاوز التحميل المسبق لنموذج AI.
+- لا توجد مكتبات جديدة ولا حاجة إلى pnpm install.
+
+محتويات التحديث:
+1) client/src/App.tsx
+2) client/src/pages/ManualReview.tsx
+3) client/src/pages/ManualReview.css
+4) client/src/pages/ManualReviewTests.tsx (ملف جديد)
+5) client/src/pages/ManualReviewTests.css (ملف جديد)
+6) client/src/lib/manualReviewQuiz.ts (ملف جديد)
+7) client/src/lib/manualReviewQuiz.test.ts (ملف جديد)
+
+خطوات PowerShell:
+
+$Project = Join-Path $env:USERPROFILE "mushafmadini-vercel-ntfs"
+$QuizZip = Join-Path $env:USERPROFILE "Downloads\mushafmadini-manual-review-tests-update.zip"
+Test-Path $QuizZip
+
+إذا ظهرت True، فك الحزمة فوق مجلد المشروع الحالي:
+
+Expand-Archive -LiteralPath $QuizZip -DestinationPath $Project -Force
+Set-Location $Project
+Test-Path ".\client\src\pages\ManualReviewTests.tsx"
+Test-Path ".\client\src\pages\ManualReviewTests.css"
+Test-Path ".\client\src\lib\manualReviewQuiz.ts"
+
+يجب أن تظهر True ثلاث مرات. ثم شغّل:
+
+pnpm check
+pnpm test
+pnpm build:static
+
+إذا نجحت الفحوصات، أضف الملفات السبعة فقط ثم راجعها:
+
+git add -- client/src/App.tsx client/src/pages/ManualReview.tsx client/src/pages/ManualReview.css client/src/pages/ManualReviewTests.tsx client/src/pages/ManualReviewTests.css client/src/lib/manualReviewQuiz.ts client/src/lib/manualReviewQuiz.test.ts
+git status --short
+git diff --cached --check
+git diff --cached --stat
+
+إذا كانت كل الملفات المطلوبة ظاهرة والفحوصات نظيفة، اعمل commit وpush:
+
+git commit -m "Add manual Quran review quizzes"
+git push origin main
+
+بعد push انتظر Vercel حتى تصبح حالة النشر Ready، ثم افتح صفحة المراجعة اليدوية واضغط «اختبر حفظك».

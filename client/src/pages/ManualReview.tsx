@@ -7,6 +7,7 @@ import {
   ChevronRight,
   Eye,
   EyeOff,
+  ListChecks,
   Mic,
   RotateCcw,
   Square,
@@ -14,6 +15,8 @@ import {
 import { Link } from "wouter";
 import { surahs } from "@/data/surahs";
 import { useQuran } from "@/hooks/useQuran";
+import RecitationCoach from "@/components/RecitationCoach";
+import ManualReviewTestsPage from "./ManualReviewTests";
 import "./ManualReview.css";
 
 type ManualGrade = "mastered" | "hint" | "repeat";
@@ -57,8 +60,36 @@ const gradeLabels: Record<ManualGrade, string> = {
   repeat: "أحتاج إعادتها",
 };
 
+type ReviewPanel = "manual" | "ai" | "tests";
+
+function ManualReviewBook3D() {
+  return (
+    <div className="manual-review-book-scene" aria-hidden="true">
+      <span className="manual-review-book-orbit manual-review-book-orbit-one" />
+      <span className="manual-review-book-orbit manual-review-book-orbit-two" />
+      <div className="manual-review-book-shadow" />
+      <div className="manual-review-book-model">
+        <div className="manual-review-book-pages" />
+        <div className="manual-review-book-spine" />
+        <div className="manual-review-book-cover">
+          <span className="manual-review-book-emblem">۞</span>
+          <strong>القرآن الكريم</strong>
+          <small>مصحف المدينة</small>
+        </div>
+      </div>
+      <span className="manual-review-book-spark manual-review-book-spark-one">✦</span>
+      <span className="manual-review-book-spark manual-review-book-spark-two">✧</span>
+    </div>
+  );
+}
+
 export default function ManualReviewPage() {
   const { quran, loading, error, retry } = useQuran();
+  const [activePanel, setActivePanel] = useState<ReviewPanel>(() =>
+    typeof window !== "undefined" && window.location.pathname === "/manual-review-test"
+      ? "tests"
+      : "manual"
+  );
   const [surahNumber, setSurahNumber] = useState(1);
   const [fromInput, setFromInput] = useState("1");
   const [toInput, setToInput] = useState("7");
@@ -86,6 +117,10 @@ export default function ManualReviewPage() {
   const currentSavedReview = savedReviews[currentKey];
   const currentAyahText = selectedQuranSurah?.ayahs.find(
     ayah => ayah.numberInSurah === activeVerse
+  )?.text;
+  const aiVerse = Number(fromInput);
+  const aiReferenceText = selectedQuranSurah?.ayahs.find(
+    ayah => ayah.numberInSurah === aiVerse
   )?.text;
 
   const rangeStats = useMemo(() => {
@@ -242,21 +277,53 @@ export default function ManualReviewPage() {
             <ArrowLeft size={16} /> العودة إلى خطة المراجعة
           </Link>
           <span className="manual-review-local-badge">
-            <BookOpen size={15} /> مراجعة يدوية بلا AI
+            <BookOpen size={15} /> صوتك يبقى على جهازك
           </span>
-          <Link href="/manual-review-test" className="manual-review-tests-link">
-            اختبر حفظك <ChevronLeft size={15} />
-          </Link>
         </header>
 
         <section className="manual-review-hero">
-          <span className="manual-review-eyebrow">تسميعك على مهلك</span>
-          <h1>راجع من حفظك، وقيّم نفسك</h1>
-          <p>
-            أخفِ الآيات، سمّع بصوتك، ثم اكشف النص وقيّم المحاولة. تقدمك يُحفظ على هذا الجهاز فقط.
-          </p>
+          <div className="manual-review-hero-copy">
+            <span className="manual-review-eyebrow">مساحة مراجعتك المتكاملة</span>
+            <h1>راجع، سمّع، واختبر حفظك</h1>
+            <p>
+              اختر المراجعة اليدوية أو التسميع الذكي المحلي أو أحد اختبارات الحفظ — كل الأدوات في مكان واحد.
+            </p>
+          </div>
+          <ManualReviewBook3D />
         </section>
 
+        <div className="manual-review-tabs" role="group" aria-label="أدوات مراجعة القرآن">
+          <button
+            type="button"
+            className={activePanel === "manual" ? "is-active" : ""}
+            aria-pressed={activePanel === "manual"}
+            onClick={() => setActivePanel("manual")}
+          >
+            <BookOpen size={18} />
+            <span><strong>مراجعة يدوية</strong><small>أخفِ الآية وقيّم نفسك</small></span>
+          </button>
+          <button
+            type="button"
+            className={activePanel === "ai" ? "is-active" : ""}
+            aria-pressed={activePanel === "ai"}
+            onClick={() => setActivePanel("ai")}
+          >
+            <Mic size={18} />
+            <span><strong>تسميع ذكي</strong><small>مقارنة محلية أثناء القراءة</small></span>
+          </button>
+          <button
+            type="button"
+            className={activePanel === "tests" ? "is-active" : ""}
+            aria-pressed={activePanel === "tests"}
+            onClick={() => setActivePanel("tests")}
+          >
+            <ListChecks size={18} />
+            <span><strong>اختبارات الحفظ</strong><small>ثلاث طرق للاختبار</small></span>
+          </button>
+        </div>
+
+        {activePanel === "manual" && (
+          <div className="manual-review-panel">
         <form className="manual-review-picker" onSubmit={startSession}>
           <label>
             السورة
@@ -473,6 +540,70 @@ export default function ManualReviewPage() {
           <span>تقييمك ذاتي للتنظيم والمتابعة، وليس تصحيحًا آليًا للتلاوة.</span>
           <Link href="/review">العودة للخطة <ArrowLeft size={14} /></Link>
         </footer>
+          </div>
+        )}
+
+        {activePanel === "ai" && (
+          <section className="manual-review-ai-panel" aria-labelledby="manual-ai-title">
+            <div className="manual-review-ai-heading">
+              <span className="manual-review-eyebrow">التسميع الذكي المحلي</span>
+              <h2 id="manual-ai-title">اختر آية وابدأ التسميع</h2>
+              <p>الصوت يُحلَّل داخل المتصفح على جهازك. لا يُرفع التسجيل إلى الموقع.</p>
+            </div>
+            <div className="manual-review-ai-picker">
+              <label>
+                السورة
+                <select
+                  value={surahNumber}
+                  onChange={event => handleSurahChange(Number(event.target.value))}
+                >
+                  {surahs.map(item => (
+                    <option key={item.number} value={item.number}>
+                      {item.number}. سورة {item.name}
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <label>
+                رقم الآية
+                <input
+                  type="number"
+                  min="1"
+                  max={selectedSurah.ayahs}
+                  inputMode="numeric"
+                  value={fromInput}
+                  onChange={event => setFromInput(event.target.value)}
+                />
+              </label>
+              <span className="manual-review-ai-range-note">من 1 إلى {selectedSurah.ayahs} آية</span>
+            </div>
+            {error && (
+              <div className="manual-review-error-card" role="alert">
+                <span>{error}</span>
+                <button type="button" onClick={retry}>إعادة تحميل المصحف</button>
+              </div>
+            )}
+            {loading ? (
+              <p className="manual-review-ai-loading">جارٍ تحميل نص المصحف المحلي...</p>
+            ) : aiReferenceText && Number.isInteger(aiVerse) ? (
+              <RecitationCoach
+                key={`${surahNumber}:${aiVerse}`}
+                referenceText={aiReferenceText}
+                verseNumber={aiVerse}
+              />
+            ) : (
+              <p className="manual-review-error" role="alert">
+                أدخل رقم آية صحيحًا من 1 إلى {selectedSurah.ayahs}.
+              </p>
+            )}
+          </section>
+        )}
+
+        {activePanel === "tests" && (
+          <section className="manual-review-quiz-panel" aria-label="اختبارات حفظ القرآن">
+            <ManualReviewTestsPage embedded />
+          </section>
+        )}
       </div>
     </main>
   );

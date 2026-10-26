@@ -1,0 +1,40 @@
+إضافة صفحة المراجعة اليدوية إلى مشروع المصحف
+
+محتويات التحديث:
+1) client/src/pages/ManualReview.tsx — الصفحة كاملة: اختيار السورة والآيات، إخفاء النص ثم كشفه، التقييم الذاتي (أتقنتها/احتجت تلميحًا/أعيدها)، وحفظ النتيجة في localStorage على الجهاز.
+2) client/src/pages/ManualReview.css — تنسيق متجاوب للهاتف والحاسوب.
+3) client/src/App.tsx — يضيف مسار /manual-review ويتجاوز التحميل المسبق لنموذج AI عند فتح هذا المسار مباشرة.
+4) client/src/pages/Home.tsx — يضيف زر فتح المراجعة اليدوية من بطاقة المراجعة.
+
+لا تحتاج إضافة مكتبات جديدة؛ المشروع لديه wouter وlucide-react أصلًا. نص القرآن يُقرأ من ملف الموقع المحلي /data/quran-uthmani.json. التسجيل الصوتي اختياري ومؤقت داخل المتصفح، ولا يُرسل للخادم ولا يُحفظ بعد مغادرة الصفحة.
+
+خطوات PowerShell:
+
+$Project = Join-Path $env:USERPROFILE "mushafmadini-vercel-ntfs"
+$Zip = Join-Path $env:USERPROFILE "Downloads\mushafmadini-manual-review-page-update.zip"
+Test-Path $Zip
+
+إذا ظهرت True، استخرج التحديث فوق مجلد المشروع الحالي (لا تحذف مجلد المشروع أو .git أو .env):
+
+Expand-Archive -LiteralPath $Zip -DestinationPath $Project -Force
+Set-Location $Project
+Test-Path ".\client\src\pages\ManualReview.tsx"
+Test-Path ".\client\src\pages\ManualReview.css"
+
+يجب أن تظهر True مرتين. ثم شغّل:
+
+pnpm check
+pnpm test
+pnpm build:static
+
+إذا نجحت، جهّز الملفات الأربعة فقط:
+
+git add -- client/src/App.tsx client/src/pages/Home.tsx client/src/pages/ManualReview.tsx client/src/pages/ManualReview.css
+git status --short
+git diff --cached --check
+git diff --cached --stat
+
+git commit -m "Add manual Quran review page"
+git push origin main
+
+لا تضف ملفات APPLY-*.txt. بعد push انتظر نشر Vercel بحالة Ready. افتح بعدها الموقع واختر من بطاقة المراجعة "المراجعة اليدوية بدون AI"، أو افتح المسار /manual-review.

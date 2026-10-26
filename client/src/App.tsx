@@ -8,7 +8,6 @@ import ErrorBoundary from "./components/ErrorBoundary";
 import { ThemeProvider } from "./contexts/ThemeContext";
 import Home from "./pages/Home";
 import ManualReviewPage from "./pages/ManualReview";
-import ManualReviewTestsPage from "./pages/ManualReviewTests";
 import ResetPasswordPage from "./pages/ResetPassword";
 import { preloadRecitationModel } from "./lib/recitationModel";
 
@@ -19,7 +18,7 @@ function Router() {
       <Route path="/mushaf" component={Home} />
       <Route path="/review" component={Home} />
       <Route path="/manual-review" component={ManualReviewPage} />
-      <Route path="/manual-review-test" component={ManualReviewTestsPage} />
+      <Route path="/manual-review-test" component={ManualReviewPage} />
       <Route path="/prayer" component={Home} />
       <Route path="/duas" component={Home} />
       <Route path="/tasbih" component={Home} />
@@ -33,10 +32,7 @@ function Router() {
 
 export default function App() {
   useEffect(() => {
-    const pathname = window.location.pathname.replace(/\/+$/, "") || "/";
-    if (pathname !== "/manual-review" && pathname !== "/manual-review-test") {
-      preloadRecitationModel();
-    }
+    preloadRecitationModel();
   }, []);
 
   return (

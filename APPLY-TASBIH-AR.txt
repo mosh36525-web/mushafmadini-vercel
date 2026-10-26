@@ -1,0 +1,15 @@
+إصلاح اهتزاز السبحة
+
+1) فك الأرشيف في مجلد مؤقت.
+2) انسخ محتويات الأرشيف إلى E:\mushafmadini-vercel مع دمج المجلدات والاستبدال.
+3) هذا تعديل واجهة فقط؛ لا يلمس الأسرار أو شهادة Aiven أو قاعدة البيانات.
+4) من PowerShell داخل E:\mushafmadini-vercel نفّذ:
+   git status --short
+   git add client/src/components/features/TasbihPage.tsx client/src/components/features/devotional.css shared/tasbihVibration.ts shared/tasbihVibration.test.ts TODO.md
+   git status --short
+   git commit -m "Fix tasbih vibration feedback"
+   git push origin main
+5) انتظر نشر Vercel الجديد حتى يصبح Ready.
+6) على هاتف يدعم اهتزاز صفحات الويب: افتح السبحة، فعّل «اهتزاز خفيف عند الزيادة»، اضغط «اختبار»، ثم اضغط العداد. إذا كان المتصفح لا يدعم الاهتزاز فستظهر رسالة بذلك. كثير من متصفحات iPhone لا تسمح لصفحات الويب بالاهتزاز.
+
+تم اختبار فحص TypeScript، 31 اختبارًا، وبناء الإنتاج في نسخة المشروع الحالية.

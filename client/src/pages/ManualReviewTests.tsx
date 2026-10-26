@@ -1,6 +1,5 @@
 import { useMemo, useState, type FormEvent } from "react";
 import {
-  ArrowLeft,
   CheckCircle2,
   ChevronLeft,
   Eye,
@@ -10,7 +9,6 @@ import {
   Shuffle,
   Type,
 } from "lucide-react";
-import { Link } from "wouter";
 import { surahs } from "@/data/surahs";
 import { useQuran } from "@/hooks/useQuran";
 import {
@@ -63,7 +61,7 @@ const gradeLabels: Record<ManualGrade, string> = {
   repeat: "أعيدها لاحقًا",
 };
 
-export default function ManualReviewTestsPage() {
+export default function ManualReviewTestsPage({ embedded = false }: { embedded?: boolean }) {
   const { quran, loading, error, retry } = useQuran();
   const [mode, setMode] = useState<QuizMode>("recitation");
   const [surahNumber, setSurahNumber] = useState(1);
@@ -295,15 +293,12 @@ export default function ManualReviewTestsPage() {
     : 0;
 
   return (
-    <main className="manual-review-tests-page" dir="rtl">
+    <section
+      className={`manual-review-tests-page ${embedded ? "is-embedded" : ""}`}
+      dir="rtl"
+      aria-label="اختبارات الحفظ"
+    >
       <div className="manual-review-tests-wrap">
-        <header className="manual-review-tests-topbar">
-          <Link href="/manual-review" className="manual-review-tests-back">
-            <ArrowLeft size={16} /> العودة للمراجعة اليدوية
-          </Link>
-          <span className="manual-review-tests-badge">اختبارات بلا AI</span>
-        </header>
-
         <section className="manual-review-tests-hero">
           <span className="manual-review-tests-eyebrow">اختبر حفظك</span>
           <h1>اختبارات على مقطعك</h1>
@@ -583,11 +578,7 @@ export default function ManualReviewTestsPage() {
         )}
 
         {loading && <p className="manual-review-test-loading">جارٍ تحميل نص المصحف المحلي...</p>}
-        <footer className="manual-review-tests-footer">
-          <span>التسميع العشوائي بتقييمك الشخصي، والكتابة واختيار الآية التالية يعملان محليًا دون AI.</span>
-          <Link href="/manual-review">العودة للمراجعة اليدوية <ArrowLeft size={14} /></Link>
-        </footer>
       </div>
-    </main>
+    </section>
   );
 }

@@ -1,0 +1,14 @@
+ميزة تخصيص خطة المراجعة
+
+1) فك الأرشيف في مجلد مؤقت.
+2) انسخ محتوياته إلى E:\mushafmadini-vercel مع دمج المجلدات. لا تستبدل مجلد .git أو ملفات الإعدادات المحلية.
+3) لا تحتاج هذه الميزة إلى تعديل قاعدة البيانات أو إضافة متغيرات Vercel؛ إعداد الخطة وإنجازها اليومي يُحفظان محليًا ويُزامنان ضمن بيانات الحساب المعتمدة.
+4) من PowerShell داخل E:\mushafmadini-vercel نفّذ:
+   git add client/src/pages/Home.tsx client/src/pages/enhancements.css shared/reviewPlan.ts shared/reviewPlan.test.ts shared/accountStorage.ts shared/accountStorage.test.ts TODO.md
+   git status --short
+   git commit -m "Add personal Quran review plan"
+   git push origin main
+5) انتظر Deployment جديدًا في Vercel حتى يظهر Ready.
+6) افتح «المراجعة» ثم «تخصيص الخطة». اختر سورة، وحدد أول وآخر آية، ثم أضف المقطع. يمكنك إضافة مقاطع متعددة، وبدء أي مقطع أو حذفه. عند إنهاء التسميع اضغط «تم التسميع» لتسجيل إنجازه لهذا اليوم.
+
+التحقق على النسخة المحلية: pnpm check ناجح، pnpm test ناجح (36 اختبارًا)، وpnpm build ناجح. لا يتضمن الأرشيف أي أسرار أو شهادات اتصال.

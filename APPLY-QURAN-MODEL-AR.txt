@@ -1,0 +1,37 @@
+تحديث نموذج التسميع: Whisper Tiny قرآني من Tarteel
+
+ما الذي يتغير؟
+- استبدال Whisper Tiny العام بنسخة Whisper Tiny مضبوطة على التلاوة القرآنية، بتحويل ONNX مكمّم Q8 متوافق مع Transformers.js.
+- يبقى الصوت داخل المتصفح وعلى جهاز المستخدم؛ لا يُرفع إلى خادم الموقع.
+- يبدأ تنزيل النموذج تلقائيًا بعد ظهور التطبيق، ويظهر شريط تقدم وخيار إيقاف التنزيل. الحجم الأولي التقريبي 45 ميغابايت، وقد يحتفظ المتصفح بالنموذج مؤقتًا.
+- استخدمت نسخة منشورة بترخيص Apache 2.0. جرى اختبار تحميلها وتفريغ مقاطع حقيقية من الفاتحة والإخلاص بنجاح في Transformers.js على بيئة Node، واجتاز المشروع فحوص TypeScript والاختبارات والبناء. لم يُختبر بعد على أجهزة زوار الموقع؛ الدقة تختلف حسب الميكروفون والقارئ، ولا يُعدّ حكمًا على التجويد.
+
+التطبيق على Windows PowerShell:
+
+1) نزّل mushafmadini-quran-model-update.zip إلى مجلد Downloads.
+2) افتح PowerShell والصق:
+
+$Project = Join-Path $env:USERPROFILE "mushafmadini-vercel-ntfs"
+$Zip = Join-Path $env:USERPROFILE "Downloads\mushafmadini-quran-model-update.zip"
+Test-Path $Zip
+Expand-Archive -LiteralPath $Zip -DestinationPath $Project -Force
+Set-Location $Project
+Test-Path ".\client\src\components\RecitationModelNotice.tsx"
+
+يجب أن تكون نتيجة فحصي Test-Path هي True.
+
+3) نفّذ الفحوصات (لا توجد تبعيات جديدة، فلا حاجة إلى pnpm install):
+
+pnpm check
+pnpm test
+pnpm build:static
+
+4) إذا نجحت الفحوصات، أضف الملفات المحددة:
+
+git add -- client/src/App.tsx client/src/components/RecitationCoach.tsx client/src/components/RecitationModelNotice.tsx client/src/lib/recitationModel.ts client/src/pages/enhancements.css client/src/workers/recitation.worker.ts
+git diff --cached --check
+git diff --cached --stat
+git commit -m "Use Quran-tuned local recitation model"
+git push origin main
+
+بعد الرفع، انتظر أن يصبح نشر commit الجديد Ready في Vercel. تحذير Vite بأن بعض ملفات JavaScript أكبر من 500 kB هو تحذير حجم فقط، وليس فشلًا في البناء.

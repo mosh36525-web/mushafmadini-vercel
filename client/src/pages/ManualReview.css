@@ -262,3 +262,184 @@
   white-space: nowrap;
 }
 .manual-review-tests-link:hover { color: var(--gold-light,#ead49b); background: rgba(214,168,79,.12); }
+
+/* Unified review workspace and lightweight CSS 3D ornament. */
+.manual-review-hero {
+  position: relative;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 205px;
+  align-items: center;
+  gap: 12px;
+  min-height: 185px;
+  padding: 18px 22px;
+  margin-bottom: 16px;
+  overflow: hidden;
+  border: 1px solid rgba(214, 168, 79, .18);
+  border-radius: 20px;
+  background: radial-gradient(ellipse at 12% 50%, rgba(214,168,79,.12), transparent 38%), linear-gradient(120deg, rgba(255,255,255,.025), rgba(214,168,79,.045));
+  isolation: isolate;
+}
+.manual-review-hero::after {
+  position: absolute;
+  z-index: -1;
+  inset: 0;
+  background-image: radial-gradient(rgba(234,212,155,.12) .75px, transparent .75px);
+  background-size: 19px 19px;
+  content: "";
+  opacity: .22;
+  mask-image: linear-gradient(90deg, #000, transparent 65%);
+}
+.manual-review-hero-copy { position: relative; z-index: 1; }
+.manual-review-hero h1 { max-width: 640px; }
+.manual-review-tabs {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin: 0 0 15px;
+}
+.manual-review-tabs button {
+  display: flex;
+  align-items: center;
+  gap: 11px;
+  min-height: 70px;
+  padding: 12px 14px;
+  color: var(--muted, #bdc5bc);
+  text-align: right;
+  border: 1px solid var(--line, rgba(255,255,255,.1));
+  border-radius: 14px;
+  background: var(--ink-card, #1b2928);
+  cursor: pointer;
+  transition: transform .2s ease, border-color .2s ease, background .2s ease, box-shadow .2s ease;
+}
+.manual-review-tabs button:hover { transform: translateY(-2px); border-color: rgba(214,168,79,.36); }
+.manual-review-tabs button:focus-visible { outline: 2px solid var(--gold-light, #ead49b); outline-offset: 2px; }
+.manual-review-tabs button.is-active {
+  color: var(--gold-light, #ead49b);
+  border-color: rgba(214,168,79,.45);
+  background: linear-gradient(135deg, rgba(214,168,79,.13), rgba(214,168,79,.045));
+  box-shadow: 0 9px 25px rgba(0,0,0,.13), inset 0 1px rgba(255,255,255,.04);
+}
+.manual-review-tabs button > span { display: grid; gap: 4px; }
+.manual-review-tabs strong { color: var(--text, #f1eee7); font-size: 11px; }
+.manual-review-tabs small { color: var(--muted, #bdc5bc); font-size: 9px; line-height: 1.5; }
+.manual-review-panel,
+.manual-review-ai-panel,
+.manual-review-quiz-panel { animation: review-panel-in .24s ease both; }
+.manual-review-ai-panel {
+  margin-top: 2px;
+  padding: clamp(15px, 3vw, 22px);
+  border: 1px solid var(--line, rgba(255,255,255,.1));
+  border-radius: 18px;
+  background: var(--ink-card, #1b2928);
+  box-shadow: 0 12px 34px rgba(0,0,0,.12);
+}
+.manual-review-ai-heading { margin-bottom: 15px; }
+.manual-review-ai-heading h2 { margin: 5px 0 4px; color: var(--text,#f1eee7); font-family: "Amiri","Noto Naskh Arabic",serif; font-size: 24px; }
+.manual-review-ai-heading p { margin: 0; color: var(--muted,#bdc5bc); font-size: 11px; line-height: 1.8; }
+.manual-review-ai-picker {
+  display: grid;
+  grid-template-columns: minmax(190px, 1fr) minmax(110px, .55fr) auto;
+  align-items: end;
+  gap: 11px;
+  margin-bottom: 14px;
+  padding: 13px;
+  border: 1px solid var(--line,rgba(255,255,255,.1));
+  border-radius: 13px;
+  background: rgba(0,0,0,.08);
+}
+.manual-review-ai-picker label { display: grid; gap: 6px; color: var(--muted,#bdc5bc); font-size: 10px; }
+.manual-review-ai-picker input,
+.manual-review-ai-picker select {
+  width: 100%;
+  min-height: 41px;
+  padding: 0 10px;
+  color: var(--text,#f1eee7);
+  border: 1px solid var(--line-strong,rgba(255,255,255,.16));
+  border-radius: 9px;
+  outline: none;
+  background: rgba(0,0,0,.12);
+  font: inherit;
+  font-size: 11px;
+}
+.manual-review-ai-picker input:focus,
+.manual-review-ai-picker select:focus { border-color: var(--gold,#d6a84f); }
+.manual-review-ai-picker option { color: #18201e; background: #fff; }
+.manual-review-ai-range-note { padding-bottom: 12px; color: var(--muted,#bdc5bc); font-size: 10px; white-space: nowrap; }
+.manual-review-ai-loading { color: var(--muted,#bdc5bc); font-size: 11px; }
+.manual-review-quiz-panel { margin-top: 2px; }
+.manual-review-tests-page.is-embedded { min-height: 0; padding: 0; color: inherit; background: transparent; }
+.manual-review-tests-page.is-embedded .manual-review-tests-wrap { width: 100%; margin: 0; }
+.manual-review-tests-page.is-embedded .manual-review-tests-hero,
+.manual-review-tests-page.is-embedded .manual-review-tests-footer { display: none; }
+.manual-review-tests-page.is-embedded .manual-review-test-modes { margin-top: 0; }
+
+.manual-review-book-scene { position: relative; display: grid; width: 190px; height: 175px; place-items: center; perspective: 850px; transform-style: preserve-3d; }
+.manual-review-book-orbit { position: absolute; width: 165px; height: 73px; border: 1px solid rgba(234,212,155,.25); border-radius: 50%; transform: rotate(-18deg) rotateX(64deg); }
+.manual-review-book-orbit-one { animation: book-orbit-turn 18s linear infinite; }
+.manual-review-book-orbit-two { width: 148px; height: 94px; border-color: rgba(214,168,79,.14); transform: rotate(38deg) rotateX(67deg); }
+.manual-review-book-shadow { position: absolute; bottom: 18px; width: 100px; height: 23px; border-radius: 50%; background: rgba(0,0,0,.32); filter: blur(9px); transform: rotateX(66deg); }
+.manual-review-book-model {
+  position: relative;
+  width: 105px;
+  height: 137px;
+  transform: rotateX(7deg) rotateY(-25deg) rotateZ(-8deg);
+  transform-style: preserve-3d;
+  animation: book-float 5s ease-in-out infinite;
+  filter: drop-shadow(10px 17px 10px rgba(0,0,0,.22));
+}
+.manual-review-book-pages { position: absolute; inset: 5px -8px 4px 12px; border: 1px solid rgba(91,67,29,.55); border-radius: 5px 7px 7px 5px; background: repeating-linear-gradient(180deg,#f2e8ce 0 2px,#d9c89f 2px 3px); box-shadow: 3px 3px 0 #9a7b43, 6px 6px 0 #725a35; transform: translateZ(-3px); }
+.manual-review-book-cover {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  gap: 7px;
+  color: #f7e7b5;
+  border: 1px solid rgba(241,215,147,.8);
+  border-radius: 6px 8px 8px 6px;
+  outline: 1px solid rgba(241,215,147,.28);
+  outline-offset: -6px;
+  background: radial-gradient(circle at 50% 40%,rgba(214,168,79,.2),transparent 36%),linear-gradient(145deg,#244c3d,#102b25 68%,#173a31);
+  box-shadow: inset 0 0 0 3px rgba(214,168,79,.12), inset 9px 0 13px rgba(0,0,0,.22);
+  transform: translateZ(5px);
+}
+.manual-review-book-cover strong { font-family: "Amiri","Noto Naskh Arabic",serif; font-size: 15px; font-weight: 600; text-shadow: 0 1px 3px #07130f; }
+.manual-review-book-cover small { color: #dac88f; font-size: 7px; letter-spacing: .1em; }
+.manual-review-book-emblem { display: grid; width: 28px; height: 28px; place-items: center; color: #efd997; border: 1px solid rgba(239,217,151,.65); border-radius: 50%; font-size: 18px; box-shadow: 0 0 16px rgba(214,168,79,.16); }
+.manual-review-book-spine { position: absolute; top: 1px; left: -10px; width: 13px; height: calc(100% - 2px); border: 1px solid rgba(241,215,147,.48); border-radius: 5px 0 0 5px; background: linear-gradient(90deg,#0c211c,#286047 60%,#163a2f); transform: rotateY(-25deg) translateZ(1px); }
+.manual-review-book-spark { position: absolute; color: #f1d98e; text-shadow: 0 0 12px rgba(239,217,151,.75); }
+.manual-review-book-spark-one { top: 19px; right: 26px; font-size: 16px; animation: book-spark 3s ease-in-out infinite; }
+.manual-review-book-spark-two { bottom: 35px; left: 21px; color: #d6a84f; font-size: 21px; animation: book-spark 4s ease-in-out infinite reverse; }
+@keyframes book-float { 0%,100% { transform: translateY(0) rotateX(7deg) rotateY(-25deg) rotateZ(-8deg); } 50% { transform: translateY(-7px) rotateX(10deg) rotateY(-20deg) rotateZ(-6deg); } }
+@keyframes book-orbit-turn { from { transform: rotate(-18deg) rotateX(64deg); } to { transform: rotate(342deg) rotateX(64deg); } }
+@keyframes book-spark { 0%,100% { opacity: .42; transform: scale(.86); } 50% { opacity: 1; transform: scale(1.1); } }
+@keyframes review-panel-in { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
+:root:not(.dark) .manual-review-tabs strong,
+:root:not(.dark) .manual-review-ai-heading h2 { color: var(--text,#23352c); }
+:root:not(.dark) .manual-review-ai-picker input,
+:root:not(.dark) .manual-review-ai-picker select { background: rgba(255,255,255,.75); }
+@media (max-width: 720px) {
+  .manual-review-hero { grid-template-columns: minmax(0,1fr) 130px; min-height: 150px; padding: 15px; }
+  .manual-review-book-scene { width: 130px; height: 145px; transform: scale(.8); }
+  .manual-review-tabs { gap: 7px; }
+  .manual-review-tabs button { align-items: flex-start; min-height: 70px; padding: 10px 9px; gap: 7px; }
+  .manual-review-tabs button strong { font-size: 10px; }
+  .manual-review-tabs button small { font-size: 8px; }
+  .manual-review-ai-picker { grid-template-columns: 1fr 1fr; }
+  .manual-review-ai-range-note { grid-column: 1 / -1; padding: 0; }
+}
+@media (max-width: 460px) {
+  .manual-review-hero { grid-template-columns: minmax(0,1fr) 88px; gap: 2px; padding: 13px; }
+  .manual-review-hero h1 { font-size: 25px; }
+  .manual-review-hero p { font-size: 11px; }
+  .manual-review-book-scene { width: 105px; height: 125px; transform: scale(.68); transform-origin: center; }
+  .manual-review-tabs { grid-template-columns: 1fr; }
+  .manual-review-tabs button { align-items: center; min-height: 55px; }
+  .manual-review-tabs button > span { grid-template-columns: auto 1fr; align-items: baseline; column-gap: 8px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  .manual-review-book-model,.manual-review-book-orbit-one,.manual-review-book-spark,.manual-review-panel,.manual-review-ai-panel,.manual-review-quiz-panel { animation: none !important; }
+  .manual-review-tabs button { transition: none; }
+}
